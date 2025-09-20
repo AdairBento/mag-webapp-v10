@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: magv10-postgres
+    environment:
+      POSTGRES_USER: maguser
+      POSTGRES_PASSWORD: magpass123
+      POSTGRES_DB: magv10
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata_magv10:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maguser -d magv10"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: magv10-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mag.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8081:80"
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata_magv10:

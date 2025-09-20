@@ -1,0 +1,89 @@
+{
+  "info": {
+    "name": "MAG V10 API (real)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    },
+    {
+      "key": "tenantId",
+      "value": "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/health",
+          "host": [
+            "http://localhost:3000"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Auth/Register First Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenantName\": \"Sua Empresa\",\n  \"email\": \"voce@empresa.com\",\n  \"name\": \"Seu Nome\",\n  \"password\": \"sua-senha\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register-first-admin",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register-first-admin"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Auth/Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"voce@empresa.com\",\n  \"password\": \"sua-senha\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      }
+    }
+  ]
+}

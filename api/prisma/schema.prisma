@@ -1,0 +1,476 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==== Enums ====
+enum AssetType {
+  vehicle
+  equipment
+  space
+  other
+}
+
+enum AssetStatus {
+  available
+  rented
+  maintenance
+}
+
+enum ContractStatus {
+  open
+  closed
+}
+
+enum FinanceType {
+  payable
+  receivable
+}
+
+enum FinanceStatus {
+  pending
+  paid
+  canceled
+}
+
+enum MaintenanceType {
+  preventive
+  corrective
+}
+
+enum MaintenanceStatus {
+  open
+  finished
+  canceled
+}
+
+enum Role {
+  admin
+  manager
+  operator
+}
+
+enum NotificationChannel {
+  whatsapp
+  email
+  sms
+}
+
+enum NotificationKind {
+  payment_overdue
+  contract_created
+  contract_due_today
+  custom
+  insurance_renewal
+  claim_status_changed
+}
+
+enum NotificationStatus {
+  queued
+  sent
+  delivered
+  read
+  failed
+}
+
+enum IncidentType {
+  fine
+  accident
+  theft
+  damage
+  other
+}
+
+enum IncidentStatus {
+  open
+  settled
+  canceled
+}
+
+enum InsurerType {
+  bank
+  association
+  insurer
+}
+
+enum PolicyStatus {
+  active
+  expired
+  canceled
+}
+
+enum PremiumPeriodicity {
+  monthly
+  quarterly
+  yearly
+  single
+}
+
+enum ClaimStatus {
+  draft
+  submitted
+  in_analysis
+  approved
+  denied
+  paid
+  closed
+}
+
+// ==== Models ====
+model Tenant {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  domain    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  usersTenants      UserTenant[]
+  clients           Client[]
+  vehicles          Vehicle[]
+  rentals           Rental[]
+  financeEntries    FinanceEntry[]
+  maintenanceOrders MaintenanceOrder[]
+  notifications     NotificationMessage[]
+  templates         NotificationTemplate[]
+  incidents         Incident[]
+  insurers          Insurer[]
+  policies          InsurancePolicy[]
+  claims            Claim[]
+  partners          Partner[]
+  settings          TenantSettings?
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenants       UserTenant[]
+  refreshTokens RefreshToken[]
+}
+
+model UserTenant {
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @db.Uuid
+  tenantId String @db.Uuid
+  role     Role
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@index([tenantId, role])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  token     String   @unique
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revoked])
+}
+
+model Client {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name          String
+  email         String?
+  phone         String?
+  document      String?
+  whatsappOptIn Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rentals  Rental[]
+  messages NotificationMessage[] @relation("ClientMessages")
+
+  @@index([tenantId, name])
+}
+
+model Vehicle {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  plate    String
+  brand    String
+  model    String
+  year     Int
+  color    String @default("Prata")
+  fuelType String @default("Flex")
+  category String @default("Hatch")
+
+  type      AssetType   @default(vehicle)
+  status    AssetStatus @default(available)
+  dailyRate Decimal     @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rentals    Rental[]
+  ownerships Ownership[]
+  maints     MaintenanceOrder[]
+  incidents  Incident[]
+  policies   InsurancePolicy[]
+
+  @@unique([tenantId, plate])
+  @@index([tenantId, type, status])
+}
+
+model Rental {
+  id        String @id @default(uuid()) @db.Uuid
+  tenantId  String @db.Uuid
+  clientId  String @db.Uuid
+  vehicleId String @db.Uuid
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client  Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  startDate DateTime
+  endDate   DateTime
+  status    ContractStatus @default(open)
+
+  dailyRate   Decimal  @db.Decimal(10, 2)
+  finalAmount Decimal? @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notifications NotificationMessage[] @relation("RentalNotifications")
+  incidents     Incident[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, vehicleId, status])
+}
+
+model FinanceEntry {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  type         FinanceType
+  status       FinanceStatus @default(pending)
+  amount       Decimal       @db.Decimal(12, 2)
+  dueDate      DateTime
+  description  String?
+  originType   String?
+  originId     String?       @db.Uuid
+  splitPercent Decimal?      @db.Decimal(5, 2)
+  amountPaid   Decimal?      @db.Decimal(12, 2)
+  paidAt       DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  messages NotificationMessage[] @relation("FinanceMessages")
+
+  @@index([tenantId, status, type])
+  @@index([tenantId, dueDate])
+}
+
+model MaintenanceOrder {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  assetId  String @db.Uuid
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  asset  Vehicle @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  type        MaintenanceType
+  status      MaintenanceStatus @default(open)
+  openedAt    DateTime
+  finishedAt  DateTime?
+  totalCost   Decimal?          @db.Decimal(12, 2)
+  description String
+
+  @@index([tenantId, status, type])
+}
+
+model NotificationTemplate {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  channel   NotificationChannel
+  kind      NotificationKind
+  name      String
+  body      String
+  active    Boolean             @default(true)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([tenantId, channel, kind, name])
+  @@index([tenantId, active])
+}
+
+model NotificationMessage {
+  id             String  @id @default(uuid()) @db.Uuid
+  tenantId       String  @db.Uuid
+  clientId       String? @db.Uuid
+  rentalId       String? @db.Uuid
+  financeEntryId String? @db.Uuid
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client       Client?       @relation(name: "ClientMessages", fields: [clientId], references: [id])
+  rental       Rental?       @relation(name: "RentalNotifications", fields: [rentalId], references: [id])
+  financeEntry FinanceEntry? @relation(name: "FinanceMessages", fields: [financeEntryId], references: [id])
+
+  channel     NotificationChannel
+  kind        NotificationKind
+  status      NotificationStatus  @default(queued)
+  recipient   String
+  content     String
+  externalId  String?
+  error       String?
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+  createdAt   DateTime            @default(now())
+
+  @@index([tenantId, status, channel, kind])
+  @@index([tenantId, createdAt])
+}
+
+model Incident {
+  id       String  @id @default(uuid()) @db.Uuid
+  tenantId String  @db.Uuid
+  assetId  String  @db.Uuid
+  rentalId String? @db.Uuid
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  asset  Vehicle @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  rental Rental? @relation(fields: [rentalId], references: [id])
+
+  type        IncidentType
+  status      IncidentStatus @default(open)
+  occurredAt  DateTime
+  description String?
+  amount      Decimal?       @db.Decimal(12, 2)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  claims Claim[] @relation("IncidentClaims")
+
+  @@index([tenantId, status, type])
+}
+
+model Insurer {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  type      InsurerType
+  name      String
+  document  String?
+  contact   String?
+  phone     String?
+  email     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  policies InsurancePolicy[]
+
+  @@index([tenantId, type, name])
+}
+
+model InsurancePolicy {
+  id        String @id @default(uuid()) @db.Uuid
+  tenantId  String @db.Uuid
+  assetId   String @db.Uuid
+  insurerId String @db.Uuid
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  asset   Vehicle @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  insurer Insurer @relation(fields: [insurerId], references: [id], onDelete: Cascade)
+
+  number        String
+  status        PolicyStatus       @default(active)
+  periodicity   PremiumPeriodicity
+  premiumAmount Decimal            @db.Decimal(12, 2)
+  coverageStart DateTime
+  coverageEnd   DateTime
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  claims Claim[]
+
+  @@unique([tenantId, number])
+  @@index([tenantId, status])
+}
+
+model Claim {
+  id         String  @id @default(uuid()) @db.Uuid
+  tenantId   String  @db.Uuid
+  policyId   String  @db.Uuid
+  incidentId String? @db.Uuid
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  policy   InsurancePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  incident Incident?       @relation(name: "IncidentClaims", fields: [incidentId], references: [id])
+
+  status        ClaimStatus @default(draft)
+  openedAt      DateTime    @default(now())
+  closedAt      DateTime?
+  description   String?
+  claimedValue  Decimal?    @db.Decimal(12, 2)
+  approvedValue Decimal?    @db.Decimal(12, 2)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([tenantId, status])
+}
+
+model Partner {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name      String
+  doc       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerships Ownership[]
+
+  @@index([tenantId, name])
+}
+
+model Ownership {
+  id           String  @id @default(uuid()) @db.Uuid
+  assetId      String  @db.Uuid
+  partnerId    String  @db.Uuid
+  revenueShare Decimal @db.Decimal(5, 2)
+
+  asset   Vehicle @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, partnerId])
+}
+
+model TenantSettings {
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @unique @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  pixKey                String?
+  whatsappPhoneNumberId String?
+  whatsappAccessToken   String?
+  notificationActive    Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}

@@ -1,0 +1,27 @@
+# node
+node_modules/
+npm-debug.log*
+pnpm-lock.yaml
+yarn.lock
+
+# build/output
+dist/
+build/
+*.log
+
+# env
+.env
+.env.*
+!/api/.env.example
+
+# prisma
+.prisma/
+node_modules/.prisma/
+**/prisma/dev.db*
+**/prisma/*.sqlite*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

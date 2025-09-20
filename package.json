@@ -1,0 +1,58 @@
+{
+  "name": "mag-web-app-v10",
+  "private": true,
+  "workspaces": [
+    "api"
+  ],
+  "packageManager": "npm@10",
+  "prisma": {
+    "schema": "api/prisma/schema.prisma"
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "dev": "tsx watch src/server.ts",
+    "dev:api": "npm -w api run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "turbo run format",
+    "test": "turbo run test",
+    "ci:verify": "turbo run lint build",
+    "prisma:gen": "dotenv -e api/.env -- cross-env PRISMA_INLINE_ENGINE=1 npx prisma generate --schema=api/prisma/schema.prisma",
+    "prisma:push": "dotenv -e api/.env -- cross-env PRISMA_INLINE_ENGINE=1 npx prisma db push --schema=api/prisma/schema.prisma --skip-generate",
+    "prisma:push:full": "dotenv -e api/.env -- cross-env PRISMA_INLINE_ENGINE=1 npx prisma db push --schema=api/prisma/schema.prisma",
+    "prisma:studio": "dotenv -e api/.env -- npx prisma studio --schema=api/prisma/schema.prisma",
+    "prisma:migrate:dev": "dotenv -e api/.env -- cross-env PRISMA_INLINE_ENGINE=1 npx prisma migrate dev --schema=api/prisma/schema.prisma",
+    "seed": "node -r dotenv/config scripts/seed.js dotenv_config_path=.env"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.5.2",
+    "cross-env": "^7.0.3",
+    "dotenv-cli": "^10.0.0",
+    "husky": "^9.1.5",
+    "lint-staged": "^15.2.10",
+    "plop": "^4.0.1",
+    "prettier": "^3.3.3",
+    "prisma": "^5.22.0",
+    "tsx": "^4.20.5",
+    "turbo": "^2.1.1",
+    "typescript": "^5.9.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,json,md}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
