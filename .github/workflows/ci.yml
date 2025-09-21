@@ -2,15 +2,27 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - "fix/**"
+      - "feature/**"
   pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint-api:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -23,5 +35,13 @@ jobs:
       - name: Install deps (workspaces)
         run: npm ci
 
-      - name: Lint (api)
+      - name: Prisma — validate schema (api)
+        run: npx --prefix api prisma validate
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db?schema=public
+
+      - name: Typecheck (api)
+        run: npm run -w api typecheck
+
+      - name: ESLint (api)
         run: npm run -w api lint
