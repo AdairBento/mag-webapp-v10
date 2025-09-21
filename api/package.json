@@ -17,7 +17,8 @@
     "format": "prettier --write \"{src,tests}/**/*.{ts,tsx,js,json,md}\"",
     "test": "vitest run --coverage",
     "prepare": "husky",
-    "seed": "node -r dotenv/config scripts/seed.js dotenv_config_path=.env"
+    "seed": "node -r dotenv/config scripts/seed.js dotenv_config_path=.env",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
