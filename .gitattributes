@@ -1,17 +1,4 @@
-# Texto padr?o em LF
-* text=auto eol=lf
-
-# Scripts Windows em CRLF
-*.ps1  text eol=crlf
-*.bat  text eol=crlf
-*.cmd  text eol=crlf
-
-# Scripts Unix em LF
+*.yml  text eol=lf
+*.yaml text eol=lf
 *.sh   text eol=lf
-
-# Bin?rios (n?o tentar converter)
-*.png  binary
-*.jpg  binary
-*.jpeg binary
-*.ico  binary
-*.pdf  binary
+*.ps1  text eol=crlf
