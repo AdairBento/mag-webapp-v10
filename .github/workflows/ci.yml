@@ -13,5 +13,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+- run: npm ci --workspaces --include-workspace-root
       - run: npm run lint
+
