@@ -4,7 +4,7 @@
   "workspaces": [
     "api"
   ],
-  "packageManager": "npm@10",
+  "packageManager": "npm@10.9.3",
   "prisma": {
     "schema": "api/prisma/schema.prisma"
   },
