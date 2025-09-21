@@ -2,16 +2,26 @@ name: CI
 
 on:
   push:
+    branches: [ main ]
   pull_request:
 
 jobs:
-  lint:
+  lint-api:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-      - run: npm ci --workspaces --include-workspace-root
-      - run: npm run -w api lint
+          cache-dependency-path: |
+            package-lock.json
+            api/package-lock.json
+
+      - name: Install deps (workspaces)
+        run: npm ci
+
+      - name: Lint (api)
+        run: npm run -w api lint
