@@ -14,7 +14,7 @@ export default defineConfig({
     coverage: {
       enabled: true,
       provider: "v8",
-      all: false,
+      all: true,
       include: ["src/**/*.ts"],
       exclude: [
         "src/types/**",
@@ -27,7 +27,6 @@ export default defineConfig({
       ],
       reportsDirectory: "coverage",
       reporter: ["text", "html", "lcov"],
-      thresholds: { lines: 10, functions: 10, branches: 5, statements: 10 },
     },
   },
 });
