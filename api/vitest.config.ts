@@ -14,23 +14,20 @@ export default defineConfig({
     coverage: {
       enabled: true,
       provider: "v8",
-      all: true, // <— conta também os não exercitados
+      all: true,
       include: ["src/**/*.ts"],
       exclude: [
         "src/types/**",
         "**/*.d.ts",
-
-        // Excluídos por enquanto:
         "src/index.ts",
         "src/server.ts",
-        "src/http/**",
         "src/routes/**",
         "src/middleware/**",
         "src/services/**",
       ],
       reportsDirectory: "coverage",
       reporter: ["text", "html", "lcov"],
-      // thresholds: { lines: 50, functions: 50, branches: 40, statements: 50 },
+      thresholds: { lines: 10, functions: 10, branches: 5, statements: 10 },
     },
   },
 });
