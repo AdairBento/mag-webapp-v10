@@ -1,4 +1,4 @@
-name: api-ci (lint + typecheck)
+name: api-ci (lint + typecheck + test)
 
 on:
   push:
@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint-typecheck:
+  lint-typecheck-test:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,3 +39,13 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Test (Vitest + coverage)
+        run: npm test
+
+      - name: Upload coverage (HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: api/coverage
