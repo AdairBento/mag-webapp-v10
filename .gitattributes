@@ -17,3 +17,4 @@
 # powershell normalmente em CRLF no Windows
 *.ps1   text eol=crlf
 # sempre LF p/ código e YAML/JSON
+.husky/* text eol=lf
