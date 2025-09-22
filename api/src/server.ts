@@ -8,7 +8,7 @@ import rentals from "./routes/rentals";
 import maintenanceOrders from "./routes/maintenanceOrders";
 import dashboard from "./routes/dashboard";
 
-const app = express();
+export const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
