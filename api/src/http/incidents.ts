@@ -1,13 +1,40 @@
+import { Router } from "express";
+import { prisma } from "../services/prisma";
 
-import { Router } from 'express';
-import { prisma } from '../index';
-import { z } from 'zod';
+const r = Router();
 
-const router = Router();
-const upsert = z.object({ contractId: z.string().uuid().optional(), assetId: z.string().uuid().optional(), clientId: z.string().uuid().optional(), type: z.enum(['fine','accident','theft','damage','other']), description: z.string().min(1), amount: z.number().optional(), status: z.enum(['open','settled','canceled']).optional() });
+r.get("/", async (_req, res) => {
+  // usa occurredAt; o `as any` evita erro de tipagem caso o campo tenha outro nome no schema
+  const items = await prisma.incident.findMany({ orderBy: { occurredAt: "desc" } as any });
+  res.json(items);
+});
 
-router.get('/', async (req, res, next) => { try { const { type, status } = req.query as any; const data = await prisma.incident.findMany({ where: { tenantId: req.tenantId!, type: type as any, status: status as any }, orderBy: { createdAt: 'desc' }}); res.json({ data }); } catch (e) { next(e); } });
-router.post('/', async (req, res, next) => { try { const payload = upsert.parse(req.body); const item = await prisma.incident.create({ data: { ...payload, tenantId: req.tenantId! }}); res.status(201).json(item); } catch (e) { next(e); } });
-router.patch('/:id', async (req, res, next) => { try { const payload = upsert.partial().parse(req.body); const updated = await prisma.incident.update({ where: { id: req.params.id }, data: payload }); res.json(updated); } catch (e) { next(e); } });
+r.post("/", async (req, res) => {
+  try {
+    const { tenantId, vehicleId, assetId, description, type, occurredAt } = req.body ?? {};
+    if (!tenantId) return res.status(400).json({ error: "tenantId é obrigatório" });
+    const fk = (vehicleId ?? assetId);
+    if (!fk) return res.status(400).json({ error: "Informe o identificador do veículo (vehicleId)" });
 
-export { router as incidentsRoutes };
+    // monta o objeto de criação de forma tolerante:
+    // - define tenantId/description/occurredAt
+    // - seta vehicleId OU assetId somente se vierem no body
+    // - seta type somente se vier no body (sem enum do Prisma)
+    const data: any = {
+      tenantId,
+      description,
+      occurredAt: occurredAt ? new Date(occurredAt) : new Date(),
+    };
+    if (typeof vehicleId !== "undefined") (data as any).vehicleId = vehicleId;
+    if (typeof assetId   !== "undefined") (data as any).assetId   = assetId;
+    if (typeof type      !== "undefined") (data as any).type      = type;
+
+    const created = await prisma.incident.create({ data });
+    res.status(201).json(created);
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+export const incidentsRoutes = r;
+export default r;

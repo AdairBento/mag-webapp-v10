@@ -10,8 +10,8 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "dev": "tsx watch src/server.ts",
-    "dev:api": "npm -w api run dev",
+    "dev": "npm run dev --prefix api",
+    "dev:api": "npm --prefix api run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
@@ -53,6 +53,7 @@
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1"
   }
 }

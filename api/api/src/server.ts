@@ -1,12 +1,15 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
-
 import clients from "./routes/clients";
 import vehicles from "./routes/vehicles";
 import rentals from "./routes/rentals";
 import maintenanceOrders from "./routes/maintenanceOrders";
-import dashboard from "./routes/dashboard";
+import incidents from "./routes/incidents";
+import insurers from "./routes/insurers";
+import policies from "./routes/policies";
+import claims from "./routes/claims";
+import financeEntries from "./routes/financeEntries";
 
 const app = express();
 app.use(cors());
@@ -19,10 +22,11 @@ app.use("/clients", clients);
 app.use("/vehicles", vehicles);
 app.use("/rentals", rentals);
 app.use("/maintenance-orders", maintenanceOrders);
-app.use("/dashboard", dashboard);
+app.use("/incidents", incidents);
+app.use("/insurers", insurers);
+app.use("/policies", policies);
+app.use("/claims", claims);
+app.use("/finance-entries", financeEntries);
 
-const PORT = Number(process.env.PORT) || 3001;
-app.listen(PORT, () => console.log(`Sistema MAG v10 API rodando em http://127.0.0.1:${PORT}`));
-
-
-
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(API up on :));

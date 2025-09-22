@@ -243,7 +243,7 @@ model Rental {
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
   startDate DateTime
-  endDate   DateTime
+  endDate   DateTime?
   status    ContractStatus @default(open)
 
   dailyRate   Decimal  @db.Decimal(10, 2)
@@ -474,3 +474,4 @@ model TenantSettings {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
+
