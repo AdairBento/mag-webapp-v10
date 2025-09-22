@@ -40,4 +40,3 @@ r.get("/summary", async (_req, res) => {
 });
 
 export default r;
-

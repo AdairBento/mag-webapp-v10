@@ -9,7 +9,7 @@
     "schema": "api/prisma/schema.prisma"
   },
   "scripts": {
-    "prepare": "husky install",
+    "prepare": "husky",
     "dev": "npm run dev --prefix api",
     "dev:api": "npm --prefix api run dev",
     "build": "turbo run build",

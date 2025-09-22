@@ -13,8 +13,9 @@ r.post("/", async (req, res) => {
   try {
     const { tenantId, vehicleId, assetId, description, type, occurredAt } = req.body ?? {};
     if (!tenantId) return res.status(400).json({ error: "tenantId é obrigatório" });
-    const fk = (vehicleId ?? assetId);
-    if (!fk) return res.status(400).json({ error: "Informe o identificador do veículo (vehicleId)" });
+    const fk = vehicleId ?? assetId;
+    if (!fk)
+      return res.status(400).json({ error: "Informe o identificador do veículo (vehicleId)" });
 
     // monta o objeto de criação de forma tolerante:
     // - define tenantId/description/occurredAt
@@ -26,8 +27,8 @@ r.post("/", async (req, res) => {
       occurredAt: occurredAt ? new Date(occurredAt) : new Date(),
     };
     if (typeof vehicleId !== "undefined") (data as any).vehicleId = vehicleId;
-    if (typeof assetId   !== "undefined") (data as any).assetId   = assetId;
-    if (typeof type      !== "undefined") (data as any).type      = type;
+    if (typeof assetId !== "undefined") (data as any).assetId = assetId;
+    if (typeof type !== "undefined") (data as any).type = type;
 
     const created = await prisma.incident.create({ data });
     res.status(201).json(created);

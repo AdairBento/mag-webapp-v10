@@ -9,8 +9,11 @@ r.get("/", async (_req, res) => {
 
 r.post("/", async (req, res) => {
   const { tenantId, plate, brand, model, year, dailyRate } = req.body || {};
-  if (!tenantId || !plate) return res.status(400).json({ error: "tenantId e plate são obrigatórios" });
-  const created = await prisma.vehicle.create({ data: { tenantId, plate, brand, model, year, dailyRate } as any });
+  if (!tenantId || !plate)
+    return res.status(400).json({ error: "tenantId e plate são obrigatórios" });
+  const created = await prisma.vehicle.create({
+    data: { tenantId, plate, brand, model, year, dailyRate } as any,
+  });
   res.status(201).json(created);
 });
 

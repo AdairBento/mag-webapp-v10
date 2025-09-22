@@ -12,10 +12,11 @@ r.get("/", async (req, res) => {
   const [total, data] = await Promise.all([
     prisma.rental.count(),
     prisma.rental.findMany({
-      skip, take: limit,
+      skip,
+      take: limit,
       orderBy: { createdAt: "desc" } as any,
-      include: { client: true, vehicle: true }
-    })
+      include: { client: true, vehicle: true },
+    }),
   ]);
   res.json({ page, limit, total, data });
 });
@@ -39,7 +40,9 @@ r.post("/", async (req, res) => {
       });
       return tx.rental.create({
         data: {
-          tenantId, clientId, vehicleId,
+          tenantId,
+          clientId,
+          vehicleId,
           startDate: startDate ? new Date(startDate) : new Date(),
           dailyRate: (v as any).dailyRate ?? "0",
           status: "open" as any,

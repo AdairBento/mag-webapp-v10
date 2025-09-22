@@ -23,6 +23,3 @@ app.use("/dashboard", dashboard);
 
 const PORT = Number(process.env.PORT) || 3001;
 app.listen(PORT, () => console.log(`Sistema MAG v10 API rodando em http://127.0.0.1:${PORT}`));
-
-
-
