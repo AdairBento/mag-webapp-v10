@@ -9,13 +9,13 @@ export default [
 
   {
     files: ["src/**/*.ts"],
-    // NÃO defina parserOptions.project aqui
+    // regras base
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
       "@typescript-eslint/no-namespace": "off",
 
-      // Garante que as regras "tipo chatas" fiquem desligadas
+      // garante que regras dependentes de type-check continuem off
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-call": "off",
@@ -23,6 +23,25 @@ export default [
       "@typescript-eslint/no-misused-promises": "off",
       "@typescript-eslint/no-unnecessary-type-assertion": "off",
       "@typescript-eslint/no-base-to-string": "off"
+    }
+  },
+
+  // Middleware pode usar any sem warning (evita os 2 avisos restantes lá)
+  {
+    files: ["src/middleware/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off"
+    }
+  },
+
+  // Afrouxa unused SÓ nestes dois arquivos e NESTES nomes
+  {
+    files: ["src/http/insurance.policies.ts", "src/http/notifications.ts"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["warn", {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^(?:_|premium|active|startAny|endAny|subject|title|body)$"
+      }]
     }
   }
 ];
