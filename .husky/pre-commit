@@ -1,5 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# Run lint-staged in the api package only
+# Husky v9+: no shebang, sem ".husky.sh"
+# Roda lint-staged apenas no pacote api/
 npm --prefix api exec lint-staged -- --config api/.lintstagedrc.json --cwd api -q
