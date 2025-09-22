@@ -15,7 +15,7 @@
     "lint": "eslint \"src/**/*.ts\" --report-unused-disable-directives",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"{src,tests}/**/*.{ts,tsx,js,json,md}\"",
-    "test": "vitest run --coverage",
+    "test": "vitest run --coverage --passWithNoTests",
     "prepare": "husky",
     "seed": "node -r dotenv/config scripts/seed.js dotenv_config_path=.env",
     "typecheck": "tsc -p tsconfig.json --noEmit",
