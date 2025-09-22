@@ -14,10 +14,9 @@ export default [
       },
     },
     rules: {
-      // Desliga regras que estão quebrando a CI agora:
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-namespace": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-namespace": "off"
     }
   }
 ];
