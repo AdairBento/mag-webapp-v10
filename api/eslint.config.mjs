@@ -1,12 +1,16 @@
-import js from "@eslint/js";
+// api/eslint.config.mjs
 import tseslint from "typescript-eslint";
 
 export default [
-  { ignores: ["dist/**", "node_modules/**", "coverage/**"] },
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
+  // Ignora build, deps e arquivos JS/CJS/MJS
+  { ignores: ["dist/**", "node_modules/**", "coverage/**", "**/*.{js,cjs,mjs}"] },
+
+  // Regras recomendadas do TS com type-check
+  ...tseslint.configs.recommendedTypeChecked,
+
+  // Escopo e regras para .ts
   {
-    files: ["**/*.ts"],
+    files: ["src/**/*.ts"],
     languageOptions: {
       parserOptions: {
         project: "./tsconfig.json",
@@ -15,8 +19,8 @@ export default [
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-      "@typescript-eslint/no-namespace": "off"
-    }
-  }
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      // se quiser: "@typescript-eslint/no-namespace": "off",
+    },
+  },
 ];
