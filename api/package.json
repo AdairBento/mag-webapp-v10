@@ -20,7 +20,8 @@
     "seed": "node -r dotenv/config scripts/seed.js dotenv_config_path=.env",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "seedmin": "node -r dotenv/config scripts/seed_minimo.js dotenv_config_path=.env",
-    "dev:3002": "cross-env PORT=3002 tsx watch src/server.ts"
+    "dev:3002": "cross-env PORT=3002 tsx watch src/server.ts",
+    "test:watch": "vitest --passWithNoTests"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
