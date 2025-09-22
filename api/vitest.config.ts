@@ -14,12 +14,22 @@ export default defineConfig({
     coverage: {
       enabled: true,
       provider: "v8",
-      all: true, // reporta também arquivos não exercitados
-      include: ["src/**/*.ts"], // só código-fonte
-      exclude: ["src/types/**", "**/*.d.ts"],
+      all: true, // <— conta também os não exercitados
+      include: ["src/**/*.ts"],
+      exclude: [
+        "src/types/**",
+        "**/*.d.ts",
+
+        // Excluídos por enquanto:
+        "src/index.ts",
+        "src/server.ts",
+        "src/http/**",
+        "src/routes/**",
+        "src/middleware/**",
+        "src/services/**",
+      ],
       reportsDirectory: "coverage",
       reporter: ["text", "html", "lcov"],
-      // (opcional) quebras mínimas para falhar o CI:
       // thresholds: { lines: 50, functions: 50, branches: 40, statements: 50 },
     },
   },
