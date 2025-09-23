@@ -26,5 +26,7 @@ app.use("/dashboard", dashboard);
 
 const PORT = Number(process.env.PORT) || 3001;
 if (process.env.NODE_ENV !== "test") {
-  app.listen(PORT, () => console.log(`Sistema MAG v10 API rodando em http://127.0.0.1:${PORT}`));
+  if (process.env.NODE_ENV !== "test") {
+    app.listen(PORT, () => console.log(`Sistema MAG v10 API rodando em http://127.0.0.1:${PORT}`));
+  }
 }
