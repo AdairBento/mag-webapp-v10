@@ -1,3 +1,4 @@
+import { Decimal } from "@prisma/client/runtime/library";
 import { Router } from "express";
 import { prisma } from "../services/prisma";
 import { Prisma } from "@prisma/client";
@@ -67,7 +68,7 @@ r.put("/:id/close", async (req, res) => {
       const now = new Date();
       const ms = now.getTime() - rental.startDate.getTime();
       const days = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
-      const rate = new Prisma.Decimal(rental.dailyRate as any);
+      const rate = new Decimal(rental.dailyRate as any);
       const finalAmount = rate.mul(days);
 
       const r = await tx.rental.update({
