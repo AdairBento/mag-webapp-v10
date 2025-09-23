@@ -11,7 +11,7 @@ export default defineConfig({
       "**/.{idea,git,cache,output,temp}/**",
       "**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*",
     ],
-    setupFiles: ["tests/vitest.setup.ts"],
+    setupFiles: ["./tests/vitest.setup.ts", "tests/vitest.setup.ts"],
     coverage: {
       enabled: true,
       provider: "v8",
