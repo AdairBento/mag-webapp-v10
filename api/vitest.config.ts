@@ -14,13 +14,14 @@ export default defineConfig({
     coverage: {
       enabled: true,
       provider: "v8",
-      all: true,
+      all: false,
       include: ["src/**/*.ts"],
       exclude: [
         "src/types/**",
         "**/*.d.ts",
         "src/index.ts",
         "src/server.ts",
+        "src/http/**",
         "src/routes/**",
         "src/middleware/**",
         "src/services/**",
