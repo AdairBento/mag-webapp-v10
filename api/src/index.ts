@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { createRoutes } from "./http/routes";
 import { errorHandler } from "./middleware/errorHandler";
-import { authMiddleware } from "./middleware/authMiddleware";
+import authMiddleware from "./middleware/authMiddleware";
 import { tenantMiddleware } from "./middleware/tenantMiddleware";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
