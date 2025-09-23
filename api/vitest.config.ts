@@ -23,7 +23,6 @@ export default defineConfig({
         "src/index.ts",
         "src/server.ts",
         "src/routes/**",
-        "src/middleware/**",
         "src/services/**",
       ],
       reportsDirectory: "coverage",
