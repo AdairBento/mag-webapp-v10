@@ -1,3 +1,4 @@
+import clients from "./http/clients";
 import health from "./http/health";
 import express from "express";
 import cors from "cors";
@@ -10,6 +11,7 @@ import maintenanceOrders from "./routes/maintenanceOrders";
 import dashboard from "./routes/dashboard";
 
 export const app = express();
+app.use(clients);
 app.use(health);
 // healthcheck simples
 app.use(cors());
@@ -26,9 +28,11 @@ const PORT = Number(process.env.PORT) || 3001;
 if (process.env.NODE_ENV !== "test") {
   if (process.env.NODE_ENV !== "test") {
     if (process.env.NODE_ENV !== "test") {
-      app.listen(PORT, () =>
-        console.log(`Sistema MAG v10 API rodando em http://127.0.0.1:${PORT}`),
-      );
+      if (process.env.NODE_ENV !== "test") {
+        app.listen(PORT, () =>
+          console.log(`Sistema MAG v10 API rodando em http://127.0.0.1:${PORT}`),
+        );
+      }
     }
   }
 }
