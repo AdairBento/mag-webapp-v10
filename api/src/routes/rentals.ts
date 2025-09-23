@@ -33,7 +33,7 @@ r.post("/", async (req, res) => {
     const existing = await prisma.rental.findFirst({ where: { vehicleId, endDate: null } });
     if (existing) return res.status(409).json({ error: "Veículo já está alugado" });
 
-    const rental = await prisma.$transaction(async (tx) => {
+    const rental = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.vehicle.update({
         where: { id: vehicleId },
         data: { status: "rented" as any },
@@ -59,7 +59,7 @@ r.post("/", async (req, res) => {
 r.put("/:id/close", async (req, res) => {
   const { id } = req.params;
   try {
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const rental = await tx.rental.findUnique({ where: { id } });
       if (!rental) throw new Error("Locação não encontrada");
       if (rental.endDate) throw new Error("Locação já encerrada");
