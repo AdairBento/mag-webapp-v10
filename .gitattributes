@@ -1,17 +1,20 @@
-# Texto padr?o em LF
-* text=auto eol=lf
+# normalize line endings
+* text=auto
 
-# Scripts Windows em CRLF
-*.ps1  text eol=crlf
-*.bat  text eol=crlf
-*.cmd  text eol=crlf
+# always LF for code/yaml
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.sh    text eol=lf
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.mjs   text eol=lf
+*.cjs   text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.sql   text eol=lf
 
-# Scripts Unix em LF
-*.sh   text eol=lf
-
-# Bin?rios (n?o tentar converter)
-*.png  binary
-*.jpg  binary
-*.jpeg binary
-*.ico  binary
-*.pdf  binary
+# powershell normalmente em CRLF no Windows
+*.ps1   text eol=crlf
+# sempre LF p/ código e YAML/JSON
+.husky/* text eol=lf

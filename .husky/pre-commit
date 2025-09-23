@@ -1,0 +1,3 @@
+# Husky v9+: sem shebang / sem .husky.sh
+# roda lint-staged apenas no pacote api/
+npm --prefix api exec lint-staged -- --config api/.lintstagedrc.json --cwd api -q

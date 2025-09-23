@@ -1,0 +1,182 @@
+=== INVENTÁRIO DO PROJETO ===
+Gerado: 09/20/2025 22:20:12
+
+-- Caminho API: api
+
+== package.json (scripts) ==
+dev: tsx watch src/server.ts
+build: tsc
+start: node dist/index.js
+db:generate: prisma generate
+db:push: prisma db push
+db:migrate: prisma migrate dev --name init
+db:deploy: prisma migrate deploy && prisma generate
+lint: eslint "src/**/*.ts" --report-unused-disable-directives --max-warnings=0
+lint:fix: eslint "src/**/*.ts" --fix
+format: prettier --write "{src,tests}/**/*.{ts,tsx,js,json,md}"
+test: vitest run --coverage
+prepare: husky
+seed: node -r dotenv/config scripts/seed.js dotenv_config_path=.env
+typecheck: tsc -p tsconfig.json --noEmit
+
+== Prisma schema: modelos e campos-chave ==
+
+[Model] Tenant
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  domain    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  usersTenants      UserTenant[]
+
+[Model] User
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+[Model] UserTenant
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @db.Uuid
+  tenantId String @db.Uuid
+  role     Role
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+[Model] RefreshToken
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  token     String   @unique
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+[Model] Client
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name          String
+  email         String?
+  phone         String?
+
+[Model] Vehicle
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plate    String
+  brand    String
+  model    String
+
+[Model] Rental
+  id        String @id @default(uuid()) @db.Uuid
+  tenantId  String @db.Uuid
+  clientId  String @db.Uuid
+  vehicleId String @db.Uuid
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client  Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+[Model] FinanceEntry
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type         FinanceType
+  status       FinanceStatus @default(pending)
+  amount       Decimal       @db.Decimal(12, 2)
+
+[Model] MaintenanceOrder
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  assetId  String @db.Uuid
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  asset  Vehicle @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  type        MaintenanceType
+
+[Model] NotificationTemplate
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  channel   NotificationChannel
+  kind      NotificationKind
+  name      String
+
+[Model] NotificationMessage
+  id             String  @id @default(uuid()) @db.Uuid
+  tenantId       String  @db.Uuid
+  clientId       String? @db.Uuid
+  rentalId       String? @db.Uuid
+  financeEntryId String? @db.Uuid
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+[Model] Incident
+  id       String  @id @default(uuid()) @db.Uuid
+  tenantId String  @db.Uuid
+  assetId  String  @db.Uuid
+  rentalId String? @db.Uuid
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  asset  Vehicle @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+[Model] Insurer
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type      InsurerType
+  name      String
+  document  String?
+
+[Model] InsurancePolicy
+  id        String @id @default(uuid()) @db.Uuid
+  tenantId  String @db.Uuid
+  assetId   String @db.Uuid
+  insurerId String @db.Uuid
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  asset   Vehicle @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+[Model] Claim
+  id         String  @id @default(uuid()) @db.Uuid
+  tenantId   String  @db.Uuid
+  policyId   String  @db.Uuid
+  incidentId String? @db.Uuid
+  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  policy   InsurancePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+[Model] Partner
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  doc       String?
+  createdAt DateTime @default(now())
+
+[Model] Ownership
+  id           String  @id @default(uuid()) @db.Uuid
+  assetId      String  @db.Uuid
+  partnerId    String  @db.Uuid
+  revenueShare Decimal @db.Decimal(5, 2)
+  asset   Vehicle @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+[Model] TenantSettings
+  id       String @id @default(uuid()) @db.Uuid
+  tenantId String @unique @db.Uuid
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pixKey                String?
+  whatsappPhoneNumberId String?
+  whatsappAccessToken   String?
+
+== Prisma migrations ==
+Pasta de migrations não existe.
+
+== Arquivos de rotas/controllers/services (API) ==
+
+-- services --
+2025-09-20 21:21   C:\Users\adair\PycharmProjects\mag-webapp-v10\api\src\services\notificationService.ts
+
+== Ocorrências por palavra-chave (top 25 por palavra) ==
+
+[locacao]
+
+=== FIM ===
+
+=== FIM ===
