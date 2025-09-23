@@ -1,3 +1,4 @@
+import { Decimal } from "@prisma/client/runtime/library";
 import { Router } from "express";
 import { prisma } from "../services/prisma";
 import { Prisma } from "@prisma/client";
@@ -33,7 +34,7 @@ r.post("/", async (req, res) => {
     const existing = await prisma.rental.findFirst({ where: { vehicleId, endDate: null } });
     if (existing) return res.status(409).json({ error: "Veículo já está alugado" });
 
-    const rental = await prisma.$transaction(async (tx) => {
+    const rental = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.vehicle.update({
         where: { id: vehicleId },
         data: { status: "rented" as any },
@@ -59,7 +60,7 @@ r.post("/", async (req, res) => {
 r.put("/:id/close", async (req, res) => {
   const { id } = req.params;
   try {
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const rental = await tx.rental.findUnique({ where: { id } });
       if (!rental) throw new Error("Locação não encontrada");
       if (rental.endDate) throw new Error("Locação já encerrada");
@@ -67,7 +68,7 @@ r.put("/:id/close", async (req, res) => {
       const now = new Date();
       const ms = now.getTime() - rental.startDate.getTime();
       const days = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
-      const rate = new Prisma.Decimal(rental.dailyRate as any);
+      const rate = new Decimal(rental.dailyRate as any);
       const finalAmount = rate.mul(days);
 
       const r = await tx.rental.update({

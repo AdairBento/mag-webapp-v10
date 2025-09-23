@@ -21,7 +21,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "seedmin": "node -r dotenv/config scripts/seed_minimo.js dotenv_config_path=.env",
     "dev:3002": "cross-env PORT=3002 tsx watch src/server.ts",
-    "test:watch": "vitest --passWithNoTests"
+    "test:watch": "vitest --passWithNoTests",
+    "prisma:generate": "prisma generate",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
