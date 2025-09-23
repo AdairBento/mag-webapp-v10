@@ -41,5 +41,20 @@ export default [
         "varsIgnorePattern": "^(?:_|Prisma|premium|active|startAny|endAny|subject|title|body)$"
       }]
     }
+  },
+
+  // <-- vírgula FALTAVA aqui ↑
+
+  {
+    files: ["**/*.test.ts", "tests/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+    languageOptions: {
+      globals: {
+        // vitest globals (sem plugin)
+        describe: "readonly", it: "readonly", expect: "readonly", vi: "readonly",
+      }
+    }
   }
 ];

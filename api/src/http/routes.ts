@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authRoutes } from "./auth";
-import { clientsRoutes } from "./clients";
+import clientsRoutes from "./clients";
 import { notificationsRoutes } from "./notifications";
 import { webhooksRoutes } from "./webhooks";
 import { insurersRoutes } from "./insurers";
