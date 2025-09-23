@@ -1,4 +1,3 @@
-import clients from "./http/clients";
 import health from "./http/health";
 import express from "express";
 import cors from "cors";
@@ -11,7 +10,6 @@ import maintenanceOrders from "./routes/maintenanceOrders";
 import dashboard from "./routes/dashboard";
 
 export const app = express();
-app.use(clients);
 app.use(health);
 // healthcheck simples
 app.use(cors());
