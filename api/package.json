@@ -81,5 +81,8 @@
   },
   "engines": {
     "node": ">=20 <21"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": "npx --no-install eslint --fix --cache --config ../eslint.config.cjs || npx --yes eslint --fix --cache --config ../eslint.config.cjs"
   }
 }
