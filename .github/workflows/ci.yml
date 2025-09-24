@@ -1,5 +1,7 @@
 name: CI
-on:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: trueon:
   push: { branches: [ "main" ] }
   pull_request:
     branches: [ "main" ]
@@ -40,3 +42,4 @@ jobs:
         with:
           name: audit_report
           path: audit_report.csv
+

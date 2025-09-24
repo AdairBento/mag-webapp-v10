@@ -1,6 +1,6 @@
-import { Router } from "express";
+import type { Router } from "express";
 import { prisma } from "../services/prisma";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 const r = Router();
 

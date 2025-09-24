@@ -1,5 +1,5 @@
 import { prisma } from "../services/prisma";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 type NotificationMessageCreateInput = Parameters<
   typeof prisma.notificationMessage.create

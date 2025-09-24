@@ -1,6 +1,4 @@
-# husky v9+ hook (sem shebang e sem _/husky.sh)
+# husky v9+ (sem shebang)
 set -e
-
-echo "ESLint (flat) usando config da raiz em api/"
-cd api || exit 1
-npx --no-install eslint --config ../eslint.config.cjs "src/**/*.ts" "tests/**/*.ts"
+cd api
+npx --no-install lint-staged || npx --yes lint-staged

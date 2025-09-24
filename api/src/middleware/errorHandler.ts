@@ -1,6 +1,6 @@
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { Request, Response, NextFunction } from "express";
-import { Prisma } from "@prisma/client";
+import type { Request, Response, NextFunction } from "express";
+import type { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 
 export const errorHandler = (error: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -21,4 +21,3 @@ export const errorHandler = (error: any, _req: Request, res: Response, _next: Ne
   }
   res.status(500).json({ error: { code: "INTERNAL_ERROR", message: "Erro interno do servidor" } });
 };
-
