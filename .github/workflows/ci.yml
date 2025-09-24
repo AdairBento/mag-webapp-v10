@@ -1,47 +1,42 @@
 name: CI
-
 on:
-  push:
-    branches:
-      - main
-      - "fix/**"
-      - "feature/**"
+  push: { branches: [ "main" ] }
   pull_request:
-    branches:
-      - main
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
+    branches: [ "main" ]
 jobs:
-  lint-api:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+  api:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: '20'
+          cache: 'npm'
           cache-dependency-path: |
-            package-lock.json
             api/package-lock.json
-
-      - name: Install deps (workspaces)
+            package-lock.json
+      - name: Install root deps (if any)
+        run: |
+          if (Test-Path package.json) { npm ci } else { Write-Host "no root package.json" }
+      - name: Install API deps
+        working-directory: api
         run: npm ci
-
-      - name: Prisma — validate schema (api)
-        run: npx --prefix api prisma validate
-        env:
-          DATABASE_URL: postgresql://user:pass@localhost:5432/db?schema=public
-
-      - name: Typecheck (api)
-        run: npm run -w api typecheck
-
-      - name: ESLint (api)
-        run: npm run -w api lint
+      - name: Typecheck
+        working-directory: api
+        run: npm run typecheck
+      - name: Lint
+        working-directory: api
+        run: npm run lint
+      - name: Test
+        working-directory: api
+        run: npm test -- --run
+      - name: Project audit (CSV)
+        run: .\audit_project.ps1 -ReportFile ".\audit_report.csv"
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit_report
+          path: audit_report.csv
