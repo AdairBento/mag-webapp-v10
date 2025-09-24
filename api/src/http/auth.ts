@@ -1,6 +1,5 @@
 import jwt, { Secret, JwtPayload, SignOptions } from "jsonwebtoken";
-import type { Router } from "express";
-
+import { Router } from "express";
 type JwtClaims = {
   sub: string;
   tenantId: string;

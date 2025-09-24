@@ -1,5 +1,4 @@
-import type { Router } from "express";
-
+import { Router } from "express";
 const router = Router();
 
 /**

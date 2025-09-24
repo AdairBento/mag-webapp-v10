@@ -1,4 +1,4 @@
-import type { Router } from "express";
+import { Router } from "express";
 import auth from "../middleware/auth";
 import { listClients } from "../services/clients";
 

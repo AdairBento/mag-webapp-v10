@@ -1,4 +1,4 @@
-import type { Router } from "express";
+import { Router } from "express";
 import { authRoutes } from "./auth";
 import clientsRoutes from "./clients";
 import { notificationsRoutes } from "./notifications";
