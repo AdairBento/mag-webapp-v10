@@ -1,3 +1,6 @@
-# Husky v9+: sem shebang / sem .husky.sh
-# roda lint-staged apenas no pacote api/
-npm --prefix api exec lint-staged -- --config api/.lintstagedrc.json --cwd api -q
+# husky v9+ hook (sem shebang e sem _/husky.sh)
+set -e
+
+echo "ESLint (flat) usando config da raiz em api/"
+cd api || exit 1
+npx --no-install eslint --config ../eslint.config.cjs "src/**/*.ts" "tests/**/*.ts"
