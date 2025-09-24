@@ -40,3 +40,10 @@ api/coverage/
 /audit-result.json
 /audit.backup*.ps1
 !audit_project.ps1
+
+# audit e backups
+*.bak
+/audit-*.html
+/audit-result.json
+/audit.backup*.ps1
+!audit_project.ps1
