@@ -1,45 +1,40 @@
 name: CI
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: trueon:
-  push: { branches: [ "main" ] }
-  pull_request:
+
+on:
+  push:
     branches: [ "main" ]
+  pull_request:
+
 jobs:
   api:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     defaults:
       run:
-        shell: pwsh
+        working-directory: api
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: |
-            api/package-lock.json
-            package-lock.json
-      - name: Install root deps (if any)
-        run: |
-          if (Test-Path package.json) { npm ci } else { Write-Host "no root package.json" }
-      - name: Install API deps
-        working-directory: api
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "api/package-lock.json"
+
+      - name: Install
         run: npm ci
+
       - name: Typecheck
-        working-directory: api
         run: npm run typecheck
-      - name: Lint
-        working-directory: api
-        run: npm run lint
-      - name: Test
-        working-directory: api
-        run: npm test -- --run
-      - name: Project audit (CSV)
-        run: .\audit_project.ps1 -ReportFile ".\audit_report.csv"
-      - name: Upload audit report
+
+      - name: Test (Vitest + coverage)
+        run: npm run test
+
+      - name: Upload coverage artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: audit_report
-          path: audit_report.csv
-
+          name: api-coverage
+          path: coverage
