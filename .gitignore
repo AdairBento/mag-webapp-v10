@@ -47,3 +47,9 @@ api/coverage/
 /audit-result.json
 /audit.backup*.ps1
 !audit_project.ps1
+
+# Arquivos gerados pelos testes (Vitest/TS)
+api/tests/**/*.js
+api/tests/**/*.js.map
+api/tests/**/*.d.ts
+api/tests/**/*.d.ts.map
