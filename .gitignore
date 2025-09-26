@@ -55,3 +55,19 @@ api/tests/**/*.d.ts
 api/tests/**/*.d.ts.map
 
 api/coverage/
+
+# caches/artefatos locais
+.turbo/
+**/.turbo/
+artifact/
+api/artifact/
+audit-reports/
+api/audit-reports/
+**/*.log
+**/*.cookie
+api/vitest.config.d.ts
+api/vitest.config.js
+api/vitest.config.js.map
+api/vitest.config.d.ts.map
+*.bak_*
+*.bak.*
