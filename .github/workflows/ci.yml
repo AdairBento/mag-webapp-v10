@@ -37,4 +37,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-coverage
-          path: coverage
+          path: api/coverage
