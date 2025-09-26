@@ -53,3 +53,5 @@ api/tests/**/*.js
 api/tests/**/*.js.map
 api/tests/**/*.d.ts
 api/tests/**/*.d.ts.map
+
+api/coverage/
