@@ -1,3 +1,5 @@
-# Husky v9+: sem shebang / sem .husky.sh
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
 echo "Running API typecheck before push..."
-npm --prefix api run typecheck || { echo "Typecheck failed"; exit 1; }
+npm run typecheck
