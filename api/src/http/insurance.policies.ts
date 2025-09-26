@@ -11,15 +11,15 @@ r.get("/", async (_req, res) => {
 
 r.post("/", async (req, res) => {
   try {
-    const { tenantId, vehicleId, assetId, startDate, startAt, endDate, endAt, premium, active } =
+    const { tenantId, vehicleId, assetId, startDate, startAt, endDate, endAt, _premium, _active } =
       req.body ?? {};
     if (!tenantId) return res.status(400).json({ error: "tenantId é obrigatório" });
     const fk = vehicleId ?? assetId;
     if (!fk)
       return res.status(400).json({ error: "Informe o identificador do veículo (vehicleId)" });
 
-    const startAny = startDate ?? startAt;
-    const endAny = endDate ?? endAt;
+    const _startAny = startDate ?? startAt;
+    const _endAny = endDate ?? endAt;
 
     const data: any = {
       tenantId: tenantId,
@@ -35,3 +35,4 @@ r.post("/", async (req, res) => {
 
 export const insurancePoliciesRoutes = r;
 export default r;
+

@@ -36,7 +36,7 @@ const swaggerSpec = swaggerJsdoc({
   definition: { openapi: "3.0.3", info: { title: "MAG WEB APP V10", version: "10.0.0" } },
   apis: ["./src/http/**/*.ts"],
 });
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec) as any);
 
 app.use(API_PREFIX, authMiddleware, tenantMiddleware, createRoutes());
 app.use(errorHandler);
@@ -58,3 +58,5 @@ app.listen(PORT, () => {
 });
 
 export { app, prisma };
+
+

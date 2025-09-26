@@ -1,4 +1,1 @@
-# husky v9+ (sem shebang)
-set -e
-cd api
-npx --no-install lint-staged || npx --yes lint-staged
+npm test

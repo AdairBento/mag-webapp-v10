@@ -1,1 +1,5 @@
+/* global module */
+/* eslint-env node */
 module.exports = { semi: true, singleQuote: false, trailingComma: 'all', printWidth: 100 };
+
+

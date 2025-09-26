@@ -1,0 +1,373 @@
+# tools\mag.ps1
+# Uso:
+#   pwsh -File .\tools\mag.ps1 -Task setup
+#   pwsh -File .\tools\mag.ps1 -Task ci
+#   pwsh -File .\tools\mag.ps1 -Task typecheck
+#   pwsh -File .\tools\mag.ps1 -Task lint
+#   pwsh -File .\tools\mag.ps1 -Task lint:fix
+#   pwsh -File .\tools\mag.ps1 -Task format
+#   pwsh -File .\tools\mag.ps1 -Task test
+#   pwsh -File .\tools\mag.ps1 -Task coverage
+#   pwsh -File .\tools\mag.ps1 -Task build
+#   pwsh -File .\tools\mag.ps1 -Task start
+#   pwsh -File .\tools\mag.ps1 -Task dev
+#   pwsh -File .\tools\mag.ps1 -Task dev:3002
+#   pwsh -File .\tools\mag.ps1 -Task db:generate|db:push|db:migrate|db:deploy
+#   pwsh -File .\tools\mag.ps1 -Task seed|seedmin
+#   pwsh -File .\tools\mag.ps1 -Task audit|audit:fix
+#   pwsh -File .\tools\mag.ps1 -Task report
+#   pwsh -File .\tools\mag.ps1 -Task update:minor
+#   pwsh -File .\tools\mag.ps1 -Task menu
+
+param(
+  [ValidateSet(
+    'setup','ci','typecheck','lint','lint:fix','format',
+    'test','coverage','build','start','dev','dev:3002',
+    'db:generate','db:push','db:migrate','db:deploy',
+    'seed','seedmin',
+    'audit','audit:fix','report','update:minor','menu'
+  )]
+  [string]$Task = 'menu'
+)
+
+$ErrorActionPreference = 'Stop'
+$script:MAG_VERSION = 'mag.ps1 v1.3.1 (2025-09-25)'
+
+function Print-Banner {
+  Write-Host "== MAG toolbox =="
+  Write-Host "Version: $MAG_VERSION"
+  Write-Host "PWD:     $((Resolve-Path '.').Path)"
+  if ($script:RepoRoot) { Write-Host "Repo:    $RepoRoot" }
+  if ($script:ApiDir)   { Write-Host "API:     $ApiDir" }
+  if ($script:NPM)      { Write-Host "NPM:     $NPM" }
+  Write-Host ""
+}
+
+function Get-RepoRoot {
+  try {
+    $r = (& git rev-parse --show-toplevel) 2>$null
+    if ($r) { return $r }
+  } catch {}
+  if ($MyInvocation.MyCommand.Path) { return (Split-Path -Parent $MyInvocation.MyCommand.Path) }
+  return (Resolve-Path '.').Path
+}
+
+function Ensure-NvmNode {
+  $script:RepoRoot = Get-RepoRoot
+  $script:ApiDir   = Join-Path $RepoRoot 'api'
+  if (-not (Test-Path $ApiDir)) { throw "Pasta 'api' não encontrada: $ApiDir" }
+
+  
+function Invoke-NpmCI {
+  Ensure-NvmNode
+  Push-Location $ApiDir
+  try {
+    & $NPM ci
+    if ($LASTEXITCODE -ne 0) { throw "npm ci saiu com código $LASTEXITCODE" }
+  } finally { Pop-Location }
+}
+$script:NVM_HOME = [Environment]::GetEnvironmentVariable('NVM_HOME','Machine')
+  if (-not $NVM_HOME) { $script:NVM_HOME = [Environment]::GetEnvironmentVariable('NVM_HOME','User') }
+  if (-not $NVM_HOME) {
+    $script:NVM_HOME = @(
+      "C:\Users\$env:USERNAME\AppData\Local\nvm",
+      "C:\Program Files\nvm",
+      "C:\Users\$env:USERNAME\AppData\Roaming\nvm"
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+  }
+
+  $script:NVM_SYMLINK = [Environment]::GetEnvironmentVariable('NVM_SYMLINK','Machine')
+  if (-not $NVM_SYMLINK) { $script:NVM_SYMLINK = [Environment]::GetEnvironmentVariable('NVM_SYMLINK','User') }
+  if (-not $NVM_SYMLINK) {
+    $script:NVM_SYMLINK = @("C:\nvm4w\nodejs","C:\Program Files\nodejs") |
+                           Where-Object { Test-Path $_ } | Select-Object -First 1
+  }
+
+  if ($NVM_HOME)    { $env:PATH = "$NVM_HOME;$env:PATH" }
+  if ($NVM_SYMLINK) { $env:PATH = "$NVM_SYMLINK;$env:PATH" }
+
+  # garantir settings.txt (opcional)
+  if ($NVM_HOME) {
+    $settings = Join-Path $NVM_HOME 'settings.txt'
+    if (-not (Test-Path $settings)) {
+@"
+root: $NVM_HOME
+path: $NVM_SYMLINK
+arch: 64
+proxy: none
+"@ | Set-Content -Encoding ASCII -Path $settings
+    }
+  }
+
+  # resolver npm/npx
+  function Resolve-NpmBin { param([string]$cmd)
+    $cands = @()
+    if ($NVM_SYMLINK) { $cands += (Join-Path $NVM_SYMLINK "$cmd.cmd"), (Join-Path $NVM_SYMLINK "$cmd.exe") }
+    $gc = Get-Command $cmd -ErrorAction SilentlyContinue
+    if ($gc) { $cands += $gc.Source }
+    foreach ($c in $cands) { if ($c -and (Test-Path $c)) { return $c } }
+    throw "$cmd não encontrado no PATH."
+  }
+  $script:NPM = Resolve-NpmBin -cmd 'npm'
+  $script:NPX = $null
+  try { $script:NPX = Resolve-NpmBin -cmd 'npx' } catch {}
+
+  # limpar aliases quebrados
+  Remove-Item Function:npm,Function:npx,Alias:npm,Alias:npx -ErrorAction SilentlyContinue
+  if ($NVM_SYMLINK -and (Test-Path (Join-Path $NVM_SYMLINK 'npm.cmd'))) {
+    Set-Alias npm (Join-Path $NVM_SYMLINK 'npm.cmd')
+  }
+  if ($NVM_SYMLINK -and (Test-Path (Join-Path $NVM_SYMLINK 'npx.cmd'))) {
+    Set-Alias npx (Join-Path $NVM_SYMLINK 'npx.cmd')
+  }
+
+  # pastas de artefatos
+  $script:ArtifactRoot = Join-Path $RepoRoot 'artifact'
+  $script:ReportDir    = Join-Path $ArtifactRoot 'audit_report'
+  New-Item -ItemType Directory -Force -Path $ReportDir | Out-Null
+  $script:ReportHtml   = Join-Path $ReportDir 'audit-report.html'
+}
+
+# ===== COM A CORREÇÃO: tokeniza a linha em argumentos =====
+function Run-Npm {
+  param([Parameter(Mandatory = $true)][string]$Line)
+  # Divide em tokens preservando itens entre aspas
+  $tokens = [regex]::Matches($Line, '("[^"]*"|\S+)') |
+            ForEach-Object { $_.Groups[1].Value.Trim('"') }
+  # Debug opcional:
+  # Write-Host "DEBUG: $NPM --prefix $ApiDir $($tokens -join ' ')"
+  & $NPM --prefix $ApiDir @tokens
+  if ($LASTEXITCODE -ne 0) { throw "npm saiu com código $LASTEXITCODE" }
+}
+
+function Task-Setup {
+  Ensure-NvmNode
+  Print-Banner
+  Push-Location $ApiDir
+  try {
+    & $NPM ci
+    if ($LASTEXITCODE -ne 0) { throw "npm ci saiu com código $LASTEXITCODE" }
+    & $NPM run -s prisma:generate
+    if ($LASTEXITCODE -ne 0) { throw "npm prisma:generate saiu com código $LASTEXITCODE" }
+    & $NPM run -s prepare
+    if ($LASTEXITCODE -ne 0) { throw "npm prepare saiu com código $LASTEXITCODE" }
+  } finally {
+    Pop-Location
+  }
+  Write-Host "OK: setup concluído."
+}
+
+function Task-CI {
+  Ensure-NvmNode
+  Print-Banner
+  Push-Location $ApiDir
+  try {
+    & $NPM ci
+    if ($LASTEXITCODE -ne 0) { throw "npm ci saiu com código $LASTEXITCODE" }
+    & $NPM run -s prisma:generate
+    if ($LASTEXITCODE -ne 0) { throw "prisma:generate saiu com código $LASTEXITCODE" }
+    & $NPM run -s typecheck
+    if ($LASTEXITCODE -ne 0) { throw "typecheck saiu com código $LASTEXITCODE" }
+    & $NPM run -s lint
+    if ($LASTEXITCODE -ne 0) { throw "lint saiu com código $LASTEXITCODE" }
+    & $NPM run -s test
+    if ($LASTEXITCODE -ne 0) { throw "test saiu com código $LASTEXITCODE" }
+  } finally {
+    Pop-Location
+  }
+  Task-Report -FromCI
+}
+    & $NPM run -s typecheck
+    if ($LASTEXITCODE -ne 0) { throw "npm typecheck saiu com código $LASTEXITCODE" }
+    & $NPM run -s lint
+    if ($LASTEXITCODE -ne 0) { throw "npm lint saiu com código $LASTEXITCODE" }
+    & $NPM run -s test
+    if ($LASTEXITCODE -ne 0) { throw "npm test saiu com código $LASTEXITCODE" }
+  } finally {
+    Pop-Location
+  }
+  Task-Report -FromCI
+}
+
+function Task-Typecheck { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s typecheck' }
+function Task-Lint      { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s lint' }
+function Task-LintFix   { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s lint:fix' }
+function Task-Format    { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s format' }
+function Task-Test      { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s test' }
+function Task-Coverage {
+  Ensure-NvmNode
+  Print-Banner
+  Push-Location $ApiDir
+  try {
+    # seu script "test" já inclui --coverage; não passar de novo
+    & $NPM run -s test
+    if ($LASTEXITCODE -ne 0) { throw "npm test (coverage) saiu com código $LASTEXITCODE" }
+  } finally {
+    Pop-Location
+  }
+}
+function Task-Build     { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s build' }
+function Task-Start     { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s start' }
+function Task-Dev       { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s dev' }
+function Task-Dev3002   { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s dev:3002' }
+
+function Task-DBGenerate { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s db:generate' }
+function Task-DBPush     { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s db:push' }
+function Task-DBMigrate  { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s db:migrate' }
+function Task-DBDeploy   { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s db:deploy' }
+
+function Task-Seed {
+  Ensure-NvmNode
+  Print-Banner
+  Push-Location $ApiDir
+  try {
+    & $NPM run -s prisma:generate
+    if ($LASTEXITCODE -ne 0) { throw "prisma:generate saiu com código $LASTEXITCODE" }
+    & $NPM run -s seed
+    if ($LASTEXITCODE -ne 0) { throw "seed saiu com código $LASTEXITCODE" }
+  } finally {
+    Pop-Location
+  }
+}
+function Task-SeedMin  { Ensure-NvmNode; Print-Banner; Run-Npm 'run -s seedmin' }
+
+function Task-Audit {
+  Ensure-NvmNode
+  Print-Banner
+  $auditTxt = Join-Path $ReportDir 'npm-audit.txt'
+  $auditJson = Join-Path $ReportDir 'npm-audit.json'
+  try {
+    Push-Location $ApiDir
+    npm audit --json | Out-File -FilePath $auditJson -Encoding UTF8
+    npm audit | Out-File -FilePath $auditTxt -Encoding UTF8
+  } finally { Pop-Location }
+  Write-Host "OK: audit salvo em:"
+  Write-Host " - $auditTxt"
+  Write-Host " - $auditJson"
+}
+
+function Task-AuditFix {
+  Ensure-NvmNode
+  Print-Banner
+  Push-Location $ApiDir
+  try {
+    npm audit fix
+  } finally { Pop-Location }
+}
+
+function Task-UpdateMinor {
+  Ensure-NvmNode
+  Print-Banner
+  if (-not $NPX) { throw "npx não encontrado. Instale Node/npm recentes ou adicione npx ao PATH." }
+  Push-Location $ApiDir
+  try {
+    & $NPX npm-check-updates -u
+    npm i
+  } finally { Pop-Location }
+  Write-Host "OK: dependências atualizadas (minor/patch) via npm-check-updates."
+}
+
+function Task-Report {
+  param([switch]$FromCI)
+  Ensure-NvmNode
+  Print-Banner
+
+  # tenta script dedicado se existir
+  $relScript = Join-Path $RepoRoot 'gera_relatorio_local.ps1'
+  if (Test-Path $relScript) {
+    powershell -NoProfile -ExecutionPolicy Bypass -File $relScript
+  }
+
+  if (-not (Test-Path $ReportHtml)) {
+    $generatedAt = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    $nodeVer = (& node -v) 2>$null
+    $npmVer  = (& $NPM -v) 2>$null
+@"
+<!doctype html>
+<html><head><meta charset="utf-8"><title>AUDIT REPORT</title></head>
+<body>
+<h1>AUDIT REPORT</h1>
+<p><b>Gerado em:</b> $generatedAt</p>
+<p><b>Repo root:</b> $RepoRoot</p>
+<p><b>API dir:</b> $ApiDir</p>
+<p><b>Node:</b> $nodeVer | <b>NPM:</b> $npmVer</p>
+<ul>
+  <li>Typecheck: $(if ($FromCI) {'executado no CI task'} else {'(se desejar, rode -Task typecheck)'})</li>
+  <li>Lint/Test/Audit: veja arquivos em <code>artifact\audit_report\</code></li>
+</ul>
+</body></html>
+"@ | Set-Content -Encoding UTF8 -Path $ReportHtml
+  }
+
+  Write-Host "OK: $ReportHtml"
+  if (-not $FromCI) { start $ReportHtml }
+}
+
+function Show-Menu {
+  Print-Banner
+  Write-Host "1) setup            2) ci                3) report"
+  Write-Host "4) typecheck        5) lint              6) lint:fix"
+  Write-Host "7) format           8) test              9) coverage"
+  Write-Host "10) build          11) start            12) dev"
+  Write-Host "13) dev:3002       14) db:generate      15) db:push"
+  Write-Host "16) db:migrate     17) db:deploy        18) seed"
+  Write-Host "19) seedmin        20) audit            21) audit:fix"
+  Write-Host "22) update:minor"
+  $choice = Read-Host "Escolha (1-22)"
+  switch ($choice) {
+    '1' { Task-Setup }
+    '2' { Task-CI }
+    '3' { Task-Report }
+    '4' { Task-Typecheck }
+    '5' { Task-Lint }
+    '6' { Task-LintFix }
+    '7' { Task-Format }
+    '8' { Task-Test }
+    '9' { Task-Coverage }
+    '10' { Task-Build }
+    '11' { Task-Start }
+    '12' { Task-Dev }
+    '13' { Task-Dev3002 }
+    '14' { Task-DBGenerate }
+    '15' { Task-DBPush }
+    '16' { Task-DBMigrate }
+    '17' { Task-DBDeploy }
+    '18' { Task-Seed }
+    '19' { Task-SeedMin }
+    '20' { Task-Audit }
+    '21' { Task-AuditFix }
+    '22' { Task-UpdateMinor }
+    default { Write-Warning "Opção inválida." }
+  }
+}
+
+# ===== Router =====
+switch ($Task) {
+  'setup'       { Task-Setup }
+  'ci'          { Task-CI }
+  'typecheck'   { Task-Typecheck }
+  'lint'        { Task-Lint }
+  'lint:fix'    { Task-LintFix }
+  'format'      { Task-Format }
+  'test'        { Task-Test }
+  'coverage'    { Task-Coverage }
+  'build'       { Task-Build }
+  'start'       { Task-Start }
+  'dev'         { Task-Dev }
+  'dev:3002'    { Task-Dev3002 }
+  'db:generate' { Task-DBGenerate }
+  'db:push'     { Task-DBPush }
+  'db:migrate'  { Task-DBMigrate }
+  'db:deploy'   { Task-DBDeploy }
+  'seed'        { Task-Seed }
+  'seedmin'     { Task-SeedMin }
+  'audit'       { Task-Audit }
+  'audit:fix'   { Task-AuditFix }
+  'update:minor'{ Task-UpdateMinor }
+  'report'      { Task-Report }
+  default       { Show-Menu }
+}
+
+
+
+

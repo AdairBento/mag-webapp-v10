@@ -1,3 +1,6 @@
+/* global require, process, console */
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient, Prisma } = require("@prisma/client");
 const prisma = new PrismaClient();
 
@@ -62,3 +65,5 @@ async function main() {
 main()
   .catch((e) => { console.error("❌ Seed falhou:", e); process.exit(1); })
   .finally(() => prisma.$disconnect());
+
+

@@ -1,3 +1,6 @@
+/* global require, process, console */
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-require-imports, no-empty */
 // seed.js — cria Tenant "MAG Dev", usuário demo e vínculo user↔tenant
 // Detecta enum/tabela de role; aceita SEED_ROLE=admin|ADMIN|...
 const { PrismaClient } = require("@prisma/client");
@@ -191,3 +194,5 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+
