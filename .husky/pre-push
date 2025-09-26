@@ -1,5 +1,2 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-echo "Running API typecheck before push..."
-npm run typecheck
+echo "Running typecheck before push..."
+npm run -s typecheck || npm run -s -w @mag/api typecheck || exit 1
