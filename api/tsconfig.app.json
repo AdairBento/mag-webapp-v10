@@ -1,8 +1,15 @@
 {
-"extends": "./tsconfig.json",
-"compilerOptions": {
-"rootDir": "src",
-"noEmit": true
-},
-"include": ["src/**/*.ts"]
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "noEmit": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "tests/**",
+    "**/*.test.ts",
+    "vitest.config.ts"
+  ]
 }

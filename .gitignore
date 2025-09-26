@@ -71,3 +71,8 @@ api/vitest.config.js.map
 api/vitest.config.d.ts.map
 *.bak_*
 *.bak.*
+
+# backups/artefatos gerados pelo build
+api/*.bak
+api/*.bak_*
+api/*.bak.*
