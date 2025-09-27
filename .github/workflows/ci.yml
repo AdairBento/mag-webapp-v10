@@ -58,7 +58,7 @@ jobs:
       - run: npm test --silent -- --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
 
       - name: Upload coverage (lcov)
-        if: ${{ success() }}
+  if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-lcov
@@ -66,7 +66,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
       - name: Upload coverage (html)
-        if: ${{ success() }}
+  if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html
@@ -77,3 +77,4 @@ jobs:
           retention-days: 7
       nv:
         VITEST_COVERAGE: 1
+
