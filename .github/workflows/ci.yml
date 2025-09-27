@@ -56,7 +56,9 @@ jobs:
       - run: npm run typecheck
       # força reporters pra gerar coverage-final.json, lcov e html
       - run: npm test --silent -- --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
-
+
+      env:
+        VITEST_COVERAGE: 1
       env:
         VITEST_COVERAGE: 1
       - name: Upload coverage (lcov)
@@ -79,5 +81,6 @@ jobs:
           retention-days: 7
       nv:
         VITEST_COVERAGE: 1
+
 
 
