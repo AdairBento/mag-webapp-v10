@@ -15,7 +15,7 @@
     "lint": "eslint --max-warnings=0 --ext .ts,.tsx,.js,.cjs,.mjs \"src/**/*\" \"tests/**/*\"",
     "lint:fix": "eslint --fix --ext .ts,.tsx,.js,.cjs,.mjs \"src/**/*\" \"tests/**/*\"",
     "format": "prettier --write \"{src,tests}/**/*.{ts,tsx,js,json,md}\"",
-    "test": "vitest run --coverage --passWithNoTests",
+    "test": "vitest run",
     "prepare": "husky",
     "seed": "node -r dotenv/config scripts/seed.js dotenv_config_path=.env",
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.test.json --noEmit",
@@ -23,7 +23,9 @@
     "dev:3002": "cross-env PORT=3002 tsx watch src/server.ts",
     "test:watch": "vitest --passWithNoTests",
     "prisma:generate": "prisma generate",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "test:ci": "vitest run",
+    "test:cov": "vitest run --coverage"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

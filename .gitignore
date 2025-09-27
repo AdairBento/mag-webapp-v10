@@ -80,3 +80,9 @@ api/*.bak.*
 # api artefatos e backups
 api/dist/
 api/.turbo/
+coverage-ci/
+logs*.txt
+logs-*.txt
+logs-.zip
+*.zip
+*.tgz
