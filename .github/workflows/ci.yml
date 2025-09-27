@@ -56,7 +56,9 @@ jobs:
       - run: npm run typecheck
       # força reporters pra gerar coverage-final.json, lcov e html
       - run: npm test --silent -- --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
-
+
+      env:
+        VITEST_COVERAGE: 1
       - name: Upload coverage (lcov)
   if: ${{ always() }}
         uses: actions/upload-artifact@v4
@@ -75,6 +77,7 @@ jobs:
             !api/coverage/lcov.info
           if-no-files-found: warn
           retention-days: 7
-      nv:
+      nv:
         VITEST_COVERAGE: 1
+
 
