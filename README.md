@@ -4,3 +4,5 @@
 
 [![CI](https://github.com/AdairBento/mag-webapp-v10/actions/workflows/ci.yml/badge.svg)](https://github.com/AdairBento/mag-webapp-v10/actions/workflows/ci.yml)
 
+
+[![CI](https://github.com/AdairBento/mag-webapp-v10/actions/workflows/ci.yml/badge.svg)](https://github.com/AdairBento/mag-webapp-v10/actions/workflows/ci.yml)
