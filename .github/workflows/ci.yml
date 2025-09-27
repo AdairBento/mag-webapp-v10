@@ -70,6 +70,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html
-          path: api/coverage
+          path: |
+            api/coverage/**
+            !api/coverage/lcov.info
           if-no-files-found: warn
           retention-days: 7
