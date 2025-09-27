@@ -54,17 +54,12 @@ jobs:
           cache-dependency-path: api/package-lock.json
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
-      # força reporters pra gerar coverage-final.json, lcov e html
-      - run: npm test --silent -- --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
-
-      env:
-        VITEST_COVERAGE: 1
-      env:
-        VITEST_COVERAGE: 1
-      env:
-        VITEST_COVERAGE: 1
+      - name: Run tests with coverage
+        run: npm test --silent -- --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
+        env:
+          VITEST_COVERAGE: 1
       - name: Upload coverage (lcov)
-  if: ${{ always() }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-lcov
@@ -72,7 +67,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
       - name: Upload coverage (html)
-  if: ${{ always() }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html
@@ -81,4 +76,3 @@ jobs:
             !api/coverage/lcov.info
           if-no-files-found: warn
           retention-days: 7
-
