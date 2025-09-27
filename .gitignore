@@ -76,3 +76,7 @@ api/vitest.config.d.ts.map
 api/*.bak
 api/*.bak_*
 api/*.bak.*
+
+# api artefatos e backups
+api/dist/
+api/.turbo/
