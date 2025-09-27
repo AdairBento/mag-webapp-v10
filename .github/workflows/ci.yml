@@ -56,6 +56,22 @@ jobs:
       - run: npm run typecheck
       # força reporters pra gerar coverage-final.json, lcov e html
       - run: npm test --silent -- --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
+      - name: Upload coverage (lcov)
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: api/coverage/lcov.info
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Upload coverage (html)
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: api/coverage
+          if-no-files-found: warn
+          retention-days: 7
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
@@ -207,20 +223,4 @@ jobs:
 
 # ---- added by script ----
 # Coloque o(s) bloco(s) abaixo logo depois do step que roda os testes
-- name: Upload coverage (lcov)
-  if: ${{ success() }}
-  uses: actions/upload-artifact@v4
-  with:
-    name: coverage-lcov
-    path: api/coverage/lcov.info
-    if-no-files-found: warn
-    retention-days: 7
-- name: Upload coverage (html)
-  if: ${{ success() }}
-  uses: actions/upload-artifact@v4
-  with:
-    name: coverage-html
-    path: api/coverage
-    if-no-files-found: warn
-    retention-days: 7
 
