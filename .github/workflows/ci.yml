@@ -7,6 +7,7 @@ on:
   pull_request:
 
 permissions:
+  actions: read
   contents: read
   id-token: write
 
@@ -94,7 +95,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cnt=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts --jq '.artifacts | map(select(.name|test("^api-coverage"))) | length')
+          cnt=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts --jq '.artifacts | map(select(.name|test("^api-coverage"))) | length' || echo 0)
           echo "count=$cnt" >> "$GITHUB_OUTPUT"
 
       - name: Limpar pasta de downloads (antes)
@@ -200,3 +201,4 @@ jobs:
             **${{ steps.cov.outputs.pct }}%** (threshold **${{ env.COVERAGE_THRESHOLD }}%**)
             - Artifacts: merged-coverage-report
             - Codecov: uploaded via ${{ github.job }}
+
