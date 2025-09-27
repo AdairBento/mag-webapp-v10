@@ -55,7 +55,7 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
       # força reporters pra gerar coverage-final.json, lcov e html
-      - run: npm test --silent -- --coverage --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
+      - run: npm test --silent -- --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
@@ -201,4 +201,5 @@ jobs:
             **${{ steps.cov.outputs.pct }}%** (threshold **${{ env.COVERAGE_THRESHOLD }}%**)
             - Artifacts: merged-coverage-report
             - Codecov: uploaded via ${{ github.job }}
+
 
