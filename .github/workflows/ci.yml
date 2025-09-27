@@ -53,7 +53,7 @@ jobs:
           cache-dependency-path: api/package-lock.json
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
-      - run: npm test --silent -- --coverage
+      - run: npm test --silent -- --coverage --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
@@ -164,3 +164,4 @@ jobs:
             **${{ steps.cov.outputs.pct }}%** (threshold **${{ env.COVERAGE_THRESHOLD }}%**)
             - Artifacts: merged-coverage-report
             - Codecov: uploaded via ${{ github.job }}
+
