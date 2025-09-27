@@ -53,7 +53,7 @@ jobs:
           cache-dependency-path: api/package-lock.json
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
-      # forçar reporters para gerar coverage-final.json, lcov e html
+      # força reporters pra gerar coverage-final.json, lcov e html
       - run: npm test --silent -- --coverage --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
       - name: Upload coverage
         if: always()
@@ -83,21 +83,45 @@ jobs:
         run: npm run lint
 
   merge-coverage-report:
+    if: ${{ always() }}              # roda mesmo se 'test' falhar
     needs: [test]
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}  # para usar gh api
     steps:
-      # baixa TODOS os artifacts api-coverage-* para uma pasta única
-      - name: Download all coverage artifacts
+      - name: Checar se existem artifacts de coverage
+        id: chk
+        shell: bash
+        run: |
+          set -euo pipefail
+          cnt=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts --jq '.artifacts | map(select(.name|test("^api-coverage"))) | length')
+          echo "count=$cnt" >> "$GITHUB_OUTPUT"
+
+      - name: Limpar pasta de downloads (antes)
+        shell: bash
+        run: rm -rf coverage-ci/downloads || true
+
+      - name: Download coverage artifacts (api-coverage-*)
+        if: steps.chk.outputs.count != '0'
         uses: actions/download-artifact@v4
         with:
           pattern: api-coverage-*
           merge-multiple: true
           path: ./coverage-ci/downloads
 
+      - name: Download legacy artifact (api-coverage)
+        if: steps.chk.outputs.count != '0'
+        uses: actions/download-artifact@v4
+        with:
+          name: api-coverage
+          path: ./coverage-ci/downloads
+
       - name: List downloaded coverage files (debug)
+        if: steps.chk.outputs.count != '0'
         run: ls -R coverage-ci
 
       - name: Merge coverage JSON + gerar HTML/JSON-SUMMARY/LCOV
+        if: steps.chk.outputs.count != '0'
         shell: bash
         run: |
           set -euo pipefail
@@ -115,12 +139,18 @@ jobs:
           npx nyc@15.1.0 report --temp-dir=coverage-ci/merged --reporter=json-summary --report-dir=coverage-ci/merged-html
           npx nyc@15.1.0 report --temp-dir=coverage-ci/merged --reporter=lcovonly    --report-dir=coverage-ci/merged
 
-      - name: Extrair % cobertura (lines)
-        id: cov
+      - name: Criar HTML fallback (sem coverage)
+        if: steps.chk.outputs.count == '0'
+        shell: bash
         run: |
-          node -e "const fs=require('fs');const p='coverage-ci/merged-html/coverage-summary.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));fs.appendFileSync(process.env.GITHUB_OUTPUT,`pct=${j.total.lines.pct}\n`);"
+          set -euo pipefail
+          mkdir -p coverage-ci/merged-html
+          cat > coverage-ci/merged-html/index.html <<'HTML'
+          <!doctype html><meta charset="utf-8"><title>Coverage report</title>
+          <h1>Coverage ainda não disponível</h1>
+          <p>Este run não gerou artifacts de coverage (api-coverage-*).</p>
+          HTML
 
-      # >>> SUBIMOS O ARTIFACTO ANTES DO GATE (sempre sai HTML pra você baixar)
       - name: Upload merged report (HTML)
         if: always()
         uses: actions/upload-artifact@v4
@@ -130,7 +160,14 @@ jobs:
           retention-days: 7
           overwrite: true
 
+      - name: Extrair % cobertura (lines)
+        id: cov
+        if: steps.chk.outputs.count != '0'
+        run: |
+          node -e "const fs=require('fs');const p='coverage-ci/merged-html/coverage-summary.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));fs.appendFileSync(process.env.GITHUB_OUTPUT,`pct=${j.total.lines.pct}\n`);"
+
       - name: Enforce threshold (${{ env.COVERAGE_THRESHOLD }}%)
+        if: steps.chk.outputs.count != '0'
         run: |
           node -e "const p=Number(process.env.PCT)||0,const_th=Number(process.env.THRESHOLD)||80; if(p<const_th){console.error(`Coverage ${p}% < ${const_th}%`);process.exit(1)} else {console.log(`Coverage ${p}% >= ${const_th}%`)}"
         env:
@@ -138,6 +175,7 @@ jobs:
           THRESHOLD: ${{ env.COVERAGE_THRESHOLD }}
 
       - name: Upload coverage to Codecov (token)
+        if: steps.chk.outputs.count != '0'
         uses: codecov/codecov-action@v5
         with:
           files: coverage-ci/merged/lcov.info
@@ -145,16 +183,16 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Slack coverage alert
-        if: ${{ always() && secrets.SLACK_WEBHOOK_URL != '' }}
+        if: ${{ always() && env.SLACK_WEBHOOK_URL != '' }}
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_COLOR: ${{ job.status }}
           SLACK_CUSTOM_PAYLOAD: |
-            {"text":"CI Coverage: ${{ steps.cov.outputs.pct }}% (threshold ${{ env.COVERAGE_THRESHOLD }}%). Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}","unfurl_links":false}
+            {"text":"CI Coverage: ${{ steps.cov.outputs.pct || 'n/a' }}% (threshold ${{ env.COVERAGE_THRESHOLD }}%). Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}","unfurl_links":false}
 
       - name: PR Coverage Comment
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.chk.outputs.count != '0'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           message: |
