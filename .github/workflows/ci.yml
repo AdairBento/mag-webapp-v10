@@ -53,6 +53,7 @@ jobs:
           cache-dependency-path: api/package-lock.json
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
+      # forçar reporters para gerar coverage-final.json, lcov e html
       - run: npm test --silent -- --coverage --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
       - name: Upload coverage
         if: always()
@@ -85,17 +86,13 @@ jobs:
     needs: [test]
     runs-on: ubuntu-latest
     steps:
-      - name: Download coverage (Node 18.x)
+      # baixa TODOS os artifacts api-coverage-* para uma pasta única
+      - name: Download all coverage artifacts
         uses: actions/download-artifact@v4
         with:
-          name: api-coverage-18.x
-          path: ./coverage-ci/node18
-
-      - name: Download coverage (Node 20.x)
-        uses: actions/download-artifact@v4
-        with:
-          name: api-coverage-20.x
-          path: ./coverage-ci/node20
+          pattern: api-coverage-*
+          merge-multiple: true
+          path: ./coverage-ci/downloads
 
       - name: List downloaded coverage files (debug)
         run: ls -R coverage-ci
@@ -107,7 +104,7 @@ jobs:
           mkdir -p coverage-ci/merge-input coverage-ci/merged coverage-ci/merged-html
           shopt -s globstar nullglob
           i=0
-          for f in coverage-ci/**/coverage-final.json; do
+          for f in coverage-ci/downloads/**/coverage-final.json; do
             cp "$f" "coverage-ci/merge-input/coverage-$((++i)).json"
           done
           if [ $i -eq 0 ]; then
@@ -123,14 +120,9 @@ jobs:
         run: |
           node -e "const fs=require('fs');const p='coverage-ci/merged-html/coverage-summary.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));fs.appendFileSync(process.env.GITHUB_OUTPUT,`pct=${j.total.lines.pct}\n`);"
 
-      - name: Enforce threshold (${{ env.COVERAGE_THRESHOLD }}%)
-        run: |
-          node -e "const p=Number(process.env.PCT)||0,const_th=Number(process.env.THRESHOLD)||80; if(p<const_th){console.error(`Coverage ${p}% < ${const_th}%`);process.exit(1)} else {console.log(`Coverage ${p}% >= ${const_th}%`)}"
-        env:
-          PCT: ${{ steps.cov.outputs.pct }}
-          THRESHOLD: ${{ env.COVERAGE_THRESHOLD }}
-
+      # >>> SUBIMOS O ARTIFACTO ANTES DO GATE (sempre sai HTML pra você baixar)
       - name: Upload merged report (HTML)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: merged-coverage-report
@@ -138,13 +130,19 @@ jobs:
           retention-days: 7
           overwrite: true
 
-      - name: Upload coverage to Codecov (OIDC)
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
+      - name: Enforce threshold (${{ env.COVERAGE_THRESHOLD }}%)
+        run: |
+          node -e "const p=Number(process.env.PCT)||0,const_th=Number(process.env.THRESHOLD)||80; if(p<const_th){console.error(`Coverage ${p}% < ${const_th}%`);process.exit(1)} else {console.log(`Coverage ${p}% >= ${const_th}%`)}"
+        env:
+          PCT: ${{ steps.cov.outputs.pct }}
+          THRESHOLD: ${{ env.COVERAGE_THRESHOLD }}
+
+      - name: Upload coverage to Codecov (token)
         uses: codecov/codecov-action@v5
         with:
           files: coverage-ci/merged/lcov.info
           fail_ci_if_error: true
-          use_oidc: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Slack coverage alert
         if: ${{ always() && secrets.SLACK_WEBHOOK_URL != '' }}
@@ -164,4 +162,3 @@ jobs:
             **${{ steps.cov.outputs.pct }}%** (threshold **${{ env.COVERAGE_THRESHOLD }}%**)
             - Artifacts: merged-coverage-report
             - Codecov: uploaded via ${{ github.job }}
-
