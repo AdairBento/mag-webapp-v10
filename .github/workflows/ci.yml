@@ -75,3 +75,5 @@ jobs:
             !api/coverage/lcov.info
           if-no-files-found: warn
           retention-days: 7
+      nv:
+        VITEST_COVERAGE: 1
