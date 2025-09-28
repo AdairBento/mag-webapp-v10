@@ -64,7 +64,7 @@ jobs:
         with:
           name: coverage-lcov
           path: api/coverage/lcov.info
-          if-no-files-found: warn
+          if-no-files-found: ignore
           retention-days: 7
       - name: Upload coverage (html)
         if: ${{ always() && matrix.node == '20.x' }}
@@ -72,5 +72,6 @@ jobs:
         with:
           name: coverage-html
           path: api/coverage
-          if-no-files-found: warn
+          if-no-files-found: ignore
           retention-days: 7
+
