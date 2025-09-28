@@ -55,6 +55,9 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
       - name: Run tests with coverage
+        env:
+          VITEST_COVERAGE: 1
+        run: npm test --silent -- --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
       - name: Upload coverage (lcov)
         if: ${{ always() && matrix.node == '20.x' }}
         uses: actions/upload-artifact@v4
@@ -71,7 +74,3 @@ jobs:
           path: api/coverage
           if-no-files-found: warn
           retention-days: 7
-        run: npm test --silent -- --coverage.reporter=json --coverage.reporter=html --coverage.reporter=lcov
-        env:
-          VITEST_COVERAGE: 1
-
