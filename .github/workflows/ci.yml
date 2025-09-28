@@ -11,9 +11,7 @@ permissions:
   contents: read
   id-token: write
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+concurrency:`r`n  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}`r`n  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 env:
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -74,4 +72,5 @@ jobs:
           path: api/coverage
           if-no-files-found: ignore
           retention-days: 7
+
 
