@@ -15,3 +15,30 @@ permissions:
 
 jobs:
 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+  publish-coverage:
+    if: ${{ always() }}
+    needs: test
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-html
+          path: ./site
+        continue-on-error: true
+      - id: up
+        if: ${{ hashFiles('site/**') != '' }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+      - if: ${{ steps.up.outcome == 'success' }}
+        uses: actions/deploy-pages@v4
+
