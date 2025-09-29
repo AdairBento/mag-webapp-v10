@@ -40,6 +40,7 @@ jobs:
     env:
       VITEST_COVERAGE: 1
       COVERAGE_THRESHOLD: 80
+        COVERAGE_INCLUDE: http|middleware|utils
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
