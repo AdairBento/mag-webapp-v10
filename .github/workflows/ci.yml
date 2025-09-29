@@ -38,7 +38,7 @@ jobs:
     env:
       VITEST_COVERAGE: "1"
       COVERAGE_THRESHOLD: "80"
-      COVERAGE_INCLUDE: "http|middleware|utils"
+      COVERAGE_INCLUDE: "http|middleware|utils|services|controllers|repositories"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -61,29 +61,19 @@ jobs:
           npm test --silent --
           --coverage
           --coverage.reporter=json
+          --coverage.reporter=json-summary
           --coverage.reporter=html
           --coverage.reporter=lcov
-          --coverage.reporter=json-summary
           --coverage.reportsDirectory=coverage
       - name: Show summary (non-blocking)
         if: always()
         working-directory: api
+        shell: bash
         run: |
           if [ -f "coverage/coverage-summary.json" ]; then
-            node - <<'NODE'
-            const fs = require('fs');
-            const s = JSON.parse(fs.readFileSync('coverage/coverage-summary.json','utf8')).total;
-            const md = [
-              '### Cobertura total',
-              `- Lines: ${s.lines.pct}% (${s.lines.covered}/${s.lines.total})`,
-              `- Statements: ${s.statements.pct}% (${s.statements.covered}/${s.statements.total})`,
-              `- Functions: ${s.functions.pct}% (${s.functions.covered}/${s.functions.total})`,
-              `- Branches: ${s.branches.pct}% (${s.branches.covered}/${s.branches.total})`,
-            ].join('\n');
-            fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY, md);
-            NODE
+            node -e "const fs=require('fs');const s=JSON.parse(fs.readFileSync('coverage/coverage-summary.json','utf8')).total;const out=['### Cobertura total','- Lines: '+s.lines.pct+'% ('+s.lines.covered+'/'+s.lines.total+')','- Statements: '+s.statements.pct+'% ('+s.statements.covered+'/'+s.statements.total+')','- Functions: '+s.functions.pct+'% ('+s.functions.covered+'/'+s.functions.total+')','- Branches: '+s.branches.pct+'% ('+s.branches.covered+'/'+s.branches.total+')'].join('\n');fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY,out);"
           else
-            echo "coverage-summary.json não encontrado (ok se os testes falharam antes)."
+            echo "coverage-summary.json não encontrado (ok se os testes falharam antes)." >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Upload coverage artifact
         if: always()
