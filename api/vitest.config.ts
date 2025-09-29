@@ -1,24 +1,34 @@
 import { defineConfig } from "vitest/config";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = dirname(__filename);
+const ROOT = resolve(__dirname); // garante root = api/
 
 const MIN = Number(process.env.COVERAGE_THRESHOLD ?? 80);
-const ENFORCE = (process.env.COVERAGE_ENFORCE ?? "0") === "1";
+
+// Pastas-alvo por padrão. Pode mudar em CI via COVERAGE_INCLUDE="http|middleware|utils"
 const defaultIncludeRoots = "http|middleware|utils";
 const roots = (process.env.COVERAGE_INCLUDE ?? defaultIncludeRoots)
   .split("|")
   .map((r) => r.replace(/\/+$/, ""));
 
-const TH  = ENFORCE ? MIN : 0;
-const BR  = ENFORCE ? Math.max(MIN - 10, 0) : 0;
+// GLOBS de include relativos ao root (api/), considerando "src/<módulo>/..."
+const INCLUDE = roots.map((r) => `src/${r}/**/*.{ts,tsx,js,jsx}`);
 
 export default defineConfig({
+  root: ROOT,
   test: {
+    include: ["tests/**/*.test.{ts,tsx,js,jsx}"],
+    environment: "node",
     coverage: {
-      enabled: true,
+      enabled: !!process.env.VITEST_COVERAGE,   // ativa no CI
       provider: "v8",
       reportsDirectory: "coverage",
       reporter: ["json","html","lcov","text-summary","json-summary"],
-      all: false,
-      include: roots.map((r) => `${r}/**/*.{ts,tsx,js,jsx}`),
+      all: false,                               // só arquivos exercitados (suficiente p/ meta global)
+      include: INCLUDE,
       exclude: [
         "**/*.d.ts",
         "**/*.test.*",
@@ -35,10 +45,10 @@ export default defineConfig({
         "tools/**",
       ],
       thresholds: {
-        lines: TH,
-        statements: TH,
-        functions: TH,
-        branches: BR,
+        lines: MIN,
+        statements: MIN,
+        functions: MIN,
+        branches: Math.max(MIN - 10, 0),
       },
     },
   },

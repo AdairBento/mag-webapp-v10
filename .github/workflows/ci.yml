@@ -13,8 +13,6 @@ concurrency:
 permissions:
   contents: read
   actions: read
-  pages: write
-  id-token: write
 
 jobs:
   lint:
@@ -24,8 +22,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          node-version: "20.x"
+          cache: npm
           cache-dependency-path: api/package-lock.json
       - name: Install dependencies
         working-directory: api
@@ -38,16 +36,15 @@ jobs:
     name: Test (Node 20.x)
     runs-on: ubuntu-24.04
     env:
-      VITEST_COVERAGE: 1
-      COVERAGE_THRESHOLD: 80
-        COVERAGE_ENFORCE: ${{ github.event_name == 'pull_request' && '1' || '0' }}
-        COVERAGE_INCLUDE: http|middleware|utils
+      VITEST_COVERAGE: "1"
+      COVERAGE_THRESHOLD: "80"
+      COVERAGE_INCLUDE: "http|middleware|utils"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          node-version: "20.x"
+          cache: npm
           cache-dependency-path: api/package-lock.json
       - name: Install dependencies
         working-directory: api
@@ -55,91 +52,35 @@ jobs:
       - name: Typecheck
         working-directory: api
         run: npm run typecheck
-      - name: Run tests with coverage (to api/coverage)
+      - name: Clean previous coverage
+        working-directory: api
+        run: rm -rf coverage
+      - name: Run tests with coverage (scoped)
         working-directory: api
         run: >
           npm test --silent --
           --coverage
           --coverage.reporter=json
           --coverage.reporter=html
-          --coverage.reporter=lcov --coverage.reporter=json-summary
+          --coverage.reporter=lcov
           --coverage.reportsDirectory=coverage
-      - name: Coverage summary in job summary
+      - name: Show summary (non-blocking)
         if: always()
-        shell: bash
+        working-directory: api
         run: |
-          node -e "
-          const fs=require('fs');
-          const p='./api/coverage/coverage-summary.json';
-          if (!fs.existsSync(p)) { console.error('coverage-summary.json não encontrado'); process.exit(1); }
-          const s=require(p).total;
-          const md = [
-            '### Coverage Summary',
-            '',
-            `- **Lines:** ${s.lines.pct}% (${s.lines.covered}/${s.lines.total})`,
-            `- **Statements:** ${s.statements.pct}% (${s.statements.covered}/${s.statements.total})`,
-            `- **Functions:** ${s.functions.pct}% (${s.functions.covered}/${s.functions.total})`,
-            `- **Branches:** ${s.branches.pct}% (${s.branches.covered}/${s.branches.total})`,
-            ''
-          ].join('\n');
-          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
-          "
-      - name: Upload coverage (html)
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-html
-          path: api/coverage
-          retention-days: 3
-          if-no-files-found: ignore
-
-  publish-coverage:
-    name: publish-coverage
-    needs: test
-    if: ${{ github.event_name != 'pull_request' && github.repository == 'AdairBento/mag-webapp-v10' }}
-    runs-on: ubuntu-24.04
-    concurrency:
-      group: pages
-      cancel-in-progress: true
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    permissions:
-      pages: write
-      id-token: write
-      actions: read
-      contents: read
-    steps:
-      - name: Download coverage (html)
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-html
-          path: ./coverage
-
-      - name: Check index.html exists
-        shell: bash
-        run: |
-          ls -la ./coverage || true
-          if [ ! -f "./coverage/index.html" ]; then
-            echo "::error::index.html não encontrado em ./coverage"
-            exit 1
+          if [ -f "coverage/coverage-summary.json" ]; then
+            node - <<'NODE'
+            const fs = require('fs');
+            const s = JSON.parse(fs.readFileSync('coverage/coverage-summary.json','utf8')).total;
+            const md = [
+              '### Cobertura total',
+              `- Lines: ${s.lines.pct}% (${s.lines.covered}/${s.lines.total})`,
+              `- Statements: ${s.statements.pct}% (${s.statements.covered}/${s.statements.total})`,
+              `- Functions: ${s.functions.pct}% (${s.functions.covered}/${s.functions.total})`,
+              `- Branches: ${s.branches.pct}% (${s.branches.covered}/${s.branches.total})`,
+            ].join('\n');
+            fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY, md);
+            NODE
+          else
+            echo "coverage-summary.json não encontrado (ok se os testes falharam antes)."
           fi
-
-      - name: Disable Jekyll
-        shell: bash
-        run: touch ./coverage/.nojekyll
-
-      - name: Copy 404.html (enable deep-links)
-        shell: bash
-        run: cp ./coverage/index.html ./coverage/404.html
-
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./coverage
-
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
