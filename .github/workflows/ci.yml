@@ -80,7 +80,7 @@ jobs:
   publish-coverage:
     name: publish-coverage
     needs: test
-    if: ${{ github.event_name != 'pull_request' }}  # publica em push/workflow_dispatch
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-24.04
     concurrency:
       group: pages
@@ -99,12 +99,27 @@ jobs:
         with:
           name: coverage-html
           path: ./coverage
+
+      - name: Check index.html exists
+        shell: bash
+        run: |
+          ls -la ./coverage || true
+          if [ ! -f "./coverage/index.html" ]; then
+            echo "::error::index.html não encontrado em ./coverage"
+            exit 1
+          fi
+
+      - name: Disable Jekyll
+        run: echo > ./coverage/.nojekyll
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./coverage
+
       - name: Deploy to GitHub Pages
         id: deploy
         uses: actions/deploy-pages@v4
