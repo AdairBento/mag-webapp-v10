@@ -62,6 +62,26 @@ jobs:
           --coverage.reporter=html
           --coverage.reporter=lcov
           --coverage.reportsDirectory=coverage
+      - name: Coverage summary in job summary
+        if: always()
+        shell: bash
+        run: |
+          node -e "
+          const fs=require('fs');
+          const p='./api/coverage/coverage-summary.json';
+          if (!fs.existsSync(p)) { console.error('coverage-summary.json não encontrado'); process.exit(1); }
+          const s=require(p).total;
+          const md = [
+            '### Coverage Summary',
+            '',
+            `- **Lines:** ${s.lines.pct}% (${s.lines.covered}/${s.lines.total})`,
+            `- **Statements:** ${s.statements.pct}% (${s.statements.covered}/${s.statements.total})`,
+            `- **Functions:** ${s.functions.pct}% (${s.functions.covered}/${s.functions.total})`,
+            `- **Branches:** ${s.branches.pct}% (${s.branches.covered}/${s.branches.total})`,
+            ''
+          ].join('\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
+          "
       - name: Upload coverage (lcov)
         uses: actions/upload-artifact@v4
         with:

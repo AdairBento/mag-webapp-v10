@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     coverage: {
       reportsDirectory: "coverage",
-      reporter: ["json","html","lcov","text-summary"],
+      reporter: ["json","html","lcov","text-summary","json-summary"],
       thresholds: {
         lines: MIN,
         statements: MIN,
