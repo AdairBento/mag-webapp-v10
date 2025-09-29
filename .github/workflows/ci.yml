@@ -67,20 +67,20 @@ jobs:
         with:
           name: coverage-lcov
           path: api/coverage/lcov.info
-          retention-days: 7
+          retention-days: 3
           if-no-files-found: ignore
       - name: Upload coverage (html)
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html
           path: api/coverage
-          retention-days: 7
+          retention-days: 3
           if-no-files-found: ignore
 
   publish-coverage:
     name: publish-coverage
     needs: test
-    if: ${{ github.event_name != 'pull_request' }}
+    if: ${{ github.event_name != 'pull_request' && github.repository == 'AdairBento/mag-webapp-v10' }}
     runs-on: ubuntu-24.04
     concurrency:
       group: pages
@@ -110,7 +110,12 @@ jobs:
           fi
 
       - name: Disable Jekyll
-        run: echo > ./coverage/.nojekyll
+        shell: bash
+        run: touch ./coverage/.nojekyll
+
+      - name: Copy 404.html (enable deep-links)
+        shell: bash
+        run: cp ./coverage/index.html ./coverage/404.html
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
