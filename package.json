@@ -24,7 +24,10 @@
     "prisma:studio": "dotenv -e api/.env -- npx prisma studio --schema=api/prisma/schema.prisma",
     "prisma:migrate:dev": "dotenv -e api/.env -- cross-env PRISMA_INLINE_ENGINE=1 npx prisma migrate dev --schema=api/prisma/schema.prisma",
     "seed": "node -r dotenv/config scripts/seed.js dotenv_config_path=.env",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "ci:local": "npm --prefix api ci && npm --prefix api run typecheck && npm --prefix api run test:cov",
+    "cov": "npm --prefix api run test:cov",
+    "cov:rank": "powershell -ExecutionPolicy Bypass -File tools/coverage-rank.ps1"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
