@@ -1,27 +1,33 @@
 import type { Request, Response, NextFunction } from "express";
 
-export interface AuthUser {
-  id: string;
-  email?: string;
-}
+export type AuthUser = { id: string };
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: AuthUser;
-    }
+export function auth(req: Request, res: Response, next: NextFunction) {
+  // Preflight CORS passa sem auth
+  if (req.method === "OPTIONS") return next();
+
+  const h = req.header("authorization") ?? req.header("Authorization");
+  if (!h) return res.status(401).json({ error: "unauthorized" });
+
+  const parts = h.trim().split(/\s+/);
+  if (parts.length !== 2) {
+    return res.status(401).json({ error: "invalid_format" });
   }
-}
 
-export default function auth(req: Request, res: Response, next: NextFunction) {
-  const h = req.header("authorization");
-  if (!h || !h.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "unauthorized" });
+  const [scheme, token] = parts;
+  if (!scheme || scheme.toLowerCase() !== "bearer") {
+    return res.status(401).json({ error: "invalid_scheme" });
   }
-  const token = h.slice(7).trim();
-  if (!token) return res.status(401).json({ error: "unauthorized" });
 
-  // aqui normalmente validaríamos o JWT e carregaríamos o usuário
-  req.user = { id: "test-user" };
-  next();
+  const trimmed = (token ?? "").trim();
+  if (!trimmed) return res.status(401).json({ error: "empty_token" });
+
+  // Stub p/ testes
+  if (trimmed === "test-token") {
+    (req as any).user = { id: "test-user" };
+  }
+
+  return next();
 }
+
+export default auth;
