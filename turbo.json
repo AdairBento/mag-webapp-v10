@@ -1,8 +1,25 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
-    "build":   { "outputs": ["dist/**"], "cache": true },
-    "test":    { "outputs": [] },
-    "typecheck": { "outputs": [] }
+    "build": {
+      "outputs": [
+        "dist/**"
+      ],
+      "cache": true
+    },
+    "test": {
+      "outputs": [],
+      "env": [
+        "COVERAGE_INCLUDE",
+        "COVERAGE_THRESHOLD",
+        "VITEST_COVERAGE"
+      ]
+    },
+    "typecheck": {
+      "outputs": []
+    },
+    "lint": {
+      "cache": true
+    }
   }
 }
