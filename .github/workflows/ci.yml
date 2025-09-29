@@ -40,6 +40,7 @@ jobs:
     env:
       VITEST_COVERAGE: 1
       COVERAGE_THRESHOLD: 80
+        COVERAGE_ENFORCE: ${{ github.event_name == 'pull_request' && '1' || '0' }}
         COVERAGE_INCLUDE: http|middleware|utils
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +62,7 @@ jobs:
           --coverage
           --coverage.reporter=json
           --coverage.reporter=html
-          --coverage.reporter=lcov
+          --coverage.reporter=lcov --coverage.reporter=json-summary
           --coverage.reportsDirectory=coverage
       - name: Coverage summary in job summary
         if: always()
