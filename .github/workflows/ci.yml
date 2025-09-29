@@ -63,6 +63,7 @@ jobs:
           --coverage.reporter=json
           --coverage.reporter=html
           --coverage.reporter=lcov
+          --coverage.reporter=json-summary
           --coverage.reportsDirectory=coverage
       - name: Show summary (non-blocking)
         if: always()
@@ -84,3 +85,10 @@ jobs:
           else
             echo "coverage-summary.json não encontrado (ok se os testes falharam antes)."
           fi
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: api/coverage
+          if-no-files-found: warn
