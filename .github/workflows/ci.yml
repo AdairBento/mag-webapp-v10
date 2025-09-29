@@ -77,31 +77,10 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-  pages_check:
-    name: Check GitHub Pages enabled
-    runs-on: ubuntu-24.04
-    outputs:
-      enabled: ${{ steps.detect.outputs.enabled }}
-    steps:
-      - uses: actions/github-script@v7
-        id: detect
-        with:
-          script: |
-            try {
-              await github.request('GET /repos/{owner}/{repo}/pages', {
-                owner: context.repo.owner,
-                repo: context.repo.repo
-              });
-              core.setOutput('enabled', 'true');
-            } catch (e) {
-              core.info(`GET /pages -> ${e.status || 'error'} (provavelmente Pages desabilitado)`);
-              core.setOutput('enabled', 'false');
-            }
-
   publish-coverage:
     name: publish-coverage
-    needs: [test, pages_check]
-    if: ${{ needs.pages_check.outputs.enabled == 'true' }}
+    needs: test
+    if: ${{ github.event_name != 'pull_request' }}  # publica em push/workflow_dispatch
     runs-on: ubuntu-24.04
     concurrency:
       group: pages
