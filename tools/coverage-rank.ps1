@@ -1,5 +1,5 @@
 param(
-  [string]$ApiDir = (Join-Path (Resolve-Path "..") "api")
+[string]$ApiDir = (Join-Path (Resolve-Path ".") "api")
 )
 $finFile = Join-Path $ApiDir "coverage\coverage-final.json"
 if (-not (Test-Path $finFile)) { Write-Error "coverage-final.json não encontrado. Rode 'npm --prefix api run test:cov' antes."; exit 1 }
