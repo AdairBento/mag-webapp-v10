@@ -83,7 +83,29 @@ jobs:
           ].join('\n');
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
           "
-      - name: Upload coverage (lcov)
+      - name: Job summary (coverage)
+        if: always()
+        shell: bash
+        run: |
+          FILE="api/coverage/coverage-summary.json"
+          if [ ! -f "$FILE" ]; then
+            echo "coverage-summary.json não encontrado (ok se os testes falharam antes)."
+            exit 0
+          fi
+          node - <<'NODE'
+          const fs = require('fs');
+          const file = 'api/coverage/coverage-summary.json';
+          const s = JSON.parse(fs.readFileSync(file,'utf8')).total;
+          const md = [
+            '### Cobertura total',
+            `- **Lines:** ${s.lines.pct}% (${s.lines.covered}/${s.lines.total})`,
+            `- **Statements:** ${s.statements.pct}% (${s.statements.covered}/${s.statements.total})`,
+            `- **Functions:** ${s.functions.pct}% (${s.functions.covered}/${s.functions.total})`,
+            `- **Branches:** ${s.branches.pct}% (${s.branches.covered}/${s.branches.total})`
+          ].join('\n');
+          fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY, md);
+          NODE
+
         uses: actions/upload-artifact@v4
         with:
           name: coverage-lcov
