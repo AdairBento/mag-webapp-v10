@@ -1,0 +1,13 @@
+{
+  "overrides": [
+    {
+      "rules": {
+        "no-empty": "off"
+      },
+      "files": [
+        "tests/**/*.ts",
+        "tests/**/*.tsx"
+      ]
+    }
+  ]
+}
