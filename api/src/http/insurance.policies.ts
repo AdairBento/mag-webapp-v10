@@ -35,4 +35,3 @@ r.post("/", async (req, res) => {
 
 export const insurancePoliciesRoutes = r;
 export default r;
-

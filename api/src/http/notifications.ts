@@ -12,7 +12,17 @@ r.get("/", async (_req, res) => {
 
 r.post("/", async (req, res) => {
   try {
-    const { tenantId, channel, kind, type, subject: _subject, title: _title, body: _body, content, active: _active } = req.body ?? {};
+    const {
+      tenantId,
+      channel,
+      kind,
+      type,
+      subject: _subject,
+      title: _title,
+      body: _body,
+      content,
+      active: _active,
+    } = req.body ?? {};
     if (!tenantId) return res.status(400).json({ error: "tenantId é obrigatório" });
     if (!channel) return res.status(400).json({ error: "channel é obrigatório" });
     const kindOrType = kind ?? type;
@@ -34,5 +44,3 @@ r.post("/", async (req, res) => {
 
 export const notificationsRoutes = r;
 export default r;
-
-

@@ -1,11 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 import app from "../src/http/app";
 import request from "supertest";
 describe("GET /version", () => {
   it("retorna 200 e o shape esperado", async () => {
-    const res = await request(app)
-      .get("/version")
-      .set("Authorization", "Bearer test");
+    const res = await request(app).get("/version").set("Authorization", "Bearer test");
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
@@ -17,5 +15,3 @@ describe("GET /version", () => {
     expect(res.body).toHaveProperty("commit"); // pode ser null
   });
 });
-
-

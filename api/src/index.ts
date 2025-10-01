@@ -10,8 +10,12 @@ import { tenantMiddleware } from "./middleware/tenantMiddleware";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 
-dotenv.config();
+
+import { authRoutes } from "./http/auth";
+import { webhooksRoutes } from "./http/webhooks";dotenv.config();
 const app = express();
+
+app.use("/api", tenantMiddleware, createRoutes());
 const prisma = new PrismaClient();
 const PORT = Number(process.env.PORT) || 3000;
 const API_PREFIX = "/api";
@@ -34,9 +38,12 @@ app.get("/metrics", (_req, res) =>
 
 const swaggerSpec = swaggerJsdoc({
   definition: { openapi: "3.0.3", info: { title: "MAG WEB APP V10", version: "10.0.0" } },
-  apis: ["./src/http/**/*.ts"],
+  apis: ["./src/http/**/*.ts","./src/routes/**/*.ts"],
 });
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec) as any);
+
+app.use("/api/auth", authRoutes);
+app.use("/api/webhooks", webhooksRoutes);
 
 app.use(API_PREFIX, authMiddleware, tenantMiddleware, createRoutes());
 app.use(errorHandler);
@@ -58,5 +65,8 @@ app.listen(PORT, () => {
 });
 
 export { app, prisma };
+
+
+
 
 

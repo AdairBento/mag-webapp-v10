@@ -8,4 +8,3 @@ describe("GET /health", () => {
     expect(res.body).toEqual({ ok: true });
   });
 });
-

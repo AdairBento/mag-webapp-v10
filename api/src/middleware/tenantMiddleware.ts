@@ -1,5 +1,14 @@
 import type { Request, Response, NextFunction } from "express";
 import { z } from "zod";
+function isPublic(req:any){
+  const p = (req.originalUrl || req.path) as string;
+  return p.startsWith("/auth")
+      || p.startsWith("/webhooks")
+      || p.startsWith("/api/utils")
+      || p.startsWith("/utils")
+      || p.startsWith("/health")
+      || p.startsWith("/api-docs");
+}
 const uuid = z.string().uuid();
 
 declare global {
@@ -11,7 +20,7 @@ declare global {
 }
 
 export const tenantMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  if (req.path.startsWith("/auth") || req.path.startsWith("/webhooks")) return next();
+  if (req.path.startsWith("/auth") || req.path.startsWith("/webhooks") || req.path.startsWith("/utils")) return next();
   const tenantId = req.headers["x-tenant-id"] as string;
   if (!tenantId)
     return res
@@ -27,3 +36,7 @@ export const tenantMiddleware = (req: Request, res: Response, next: NextFunction
       .json({ error: { code: "INVALID_TENANT", message: "x-tenant-id deve ser um UUID válido" } });
   }
 };
+
+
+
+

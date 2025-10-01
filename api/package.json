@@ -25,7 +25,11 @@
     "prisma:generate": "prisma generate",
     "postinstall": "prisma generate",
     "test:ci": "vitest run",
-    "test:cov": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=lcov --coverage.reportsDirectory=coverage --coverage.reporter=json"
+    "test:cov": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=lcov --coverage.reporter=json --coverage.reportsDirectory=coverage",
+    "check": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.test.json --noEmit && vitest run",
+    "fix:fmt": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\" \"tests/**/*.{ts,tsx}\"",
+    "fix:lint": "eslint \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\" --fix",
+    "fix": "npm run -s fix:fmt && npm run -s fix:lint"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

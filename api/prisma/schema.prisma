@@ -196,9 +196,19 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  rentals  Rental[]
-  messages NotificationMessage[] @relation("ClientMessages")
+  rentals    Rental[]
+  messages   NotificationMessage[] @relation("ClientMessages")
+  personType String                @default("PF")
+  cpf        String?               @db.VarChar(14)
+  cep        String?               @db.VarChar(8)
+  street     String?               @db.VarChar(120)
+  number     String?               @db.VarChar(20)
+  complement String?               @db.VarChar(60)
+  district   String?               @db.VarChar(80)
+  city       String?               @db.VarChar(80)
+  state      String?               @db.VarChar(2)
 
+  @@unique([tenantId, cpf])
   @@index([tenantId, name])
 }
 
@@ -474,4 +484,3 @@ model TenantSettings {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
-

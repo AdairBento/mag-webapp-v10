@@ -86,3 +86,8 @@ logs-*.txt
 logs-.zip
 *.zip
 *.tgz
+
+# Backups locais
+api/__bk_*/
+api/__autobk_*/
+*.bad

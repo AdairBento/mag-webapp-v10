@@ -6,24 +6,17 @@ export function auth(req: Request, res: Response, next: NextFunction) {
   // Preflight CORS passa sem auth
   if (req.method === "OPTIONS") return next();
 
-  const h = req.header("authorization") ?? req.header("Authorization");
-  if (!h) return res.status(401).json({ error: "unauthorized" });
+  const raw = String(req.headers["authorization"] ?? "");
+  if (!raw) return res.status(401).json({ error: "unauthorized" });
 
-  const parts = h.trim().split(/\s+/);
-  if (parts.length !== 2) {
-    return res.status(401).json({ error: "invalid_format" });
-  }
+  const m = raw.match(/^Bearer\s+(\S+)$/i);
+  if (!m) return res.status(401).json({ error: "invalid Authorization format" });
 
-  const [scheme, token] = parts;
-  if (!scheme || scheme.toLowerCase() !== "bearer") {
-    return res.status(401).json({ error: "invalid_scheme" });
-  }
+  const token = m[1].trim();
+  if (!token) return res.status(401).json({ error: "empty_token" });
 
-  const trimmed = (token ?? "").trim();
-  if (!trimmed) return res.status(401).json({ error: "empty_token" });
-
-  // Stub p/ testes
-  if (trimmed === "test-token") {
+  // Stub para testes
+  if (token === "test-token") {
     (req as any).user = { id: "test-user" };
   }
 

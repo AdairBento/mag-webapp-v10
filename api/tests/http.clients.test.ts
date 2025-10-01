@@ -34,4 +34,3 @@ describe("GET /clients (rota real)", () => {
     }
   });
 });
-

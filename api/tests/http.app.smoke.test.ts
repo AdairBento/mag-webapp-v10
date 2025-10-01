@@ -7,4 +7,3 @@ describe("app (HTTP smoke)", () => {
     expect(res.status).toBe(404);
   });
 });
-
