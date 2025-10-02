@@ -18,9 +18,10 @@ Write-Host "`nTypecheck (app+tests)..." -ForegroundColor DarkCyan
 npm --workspace @mag/api run typecheck
 
 Write-Host "`nVitest (resumo)..." -ForegroundColor DarkCyan
-npm --workspace @mag/api exec -- vitest run --reporter=basic
+npm --workspace @mag/api exec -- vitest run
 
 Write-Host "`nArquivos pendentes:" -ForegroundColor DarkCyan
 git status --short
 Write-Host "===========================`n" -ForegroundColor Cyan
+
 
