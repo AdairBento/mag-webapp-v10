@@ -1,3 +1,4 @@
+import clients from "./clients";
 import express from "express";
 import clientsRouter from "../routes/clients";
 
@@ -39,6 +40,6 @@ app.get("/version", (_req, res) => {
 app.use("/clients", clientsRouter);
 
 // 404 padrão (depois de todas as rotas)
+app.use(clients);
 app.use((_req, res) => res.status(404).json({ error: "not_found" }));
-
 export default app;
