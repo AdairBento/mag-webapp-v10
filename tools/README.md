@@ -1,4 +1,4 @@
-# Tools (scripts auxiliares)
+﻿# Tools (scripts auxiliares)
 
 Coleção de scripts PowerShell que agilizam o fluxo de trabalho do repositório.
 
